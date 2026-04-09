@@ -208,7 +208,7 @@ function renderCart() {
     total += itemTotal * item.qty;
 
 div.innerHTML = `
-  <div style="margin-bottom:10px;">
+  <div style="margin-bottom:10px;font-weight:bold;">
     ${item.name} x${item.qty} (${itemTotal.toFixed(2)}€)
     ${extrasText}
   </div>
@@ -254,11 +254,18 @@ async function renderTables() {
 
   renderTableSelect();
 
+  const start = document.getElementById("rangeStart").value;
+  const end = document.getElementById("rangeEnd").value;
+
+    // 🔥 SPEICHERN
+  localStorage.setItem("tableStart", start);
+  localStorage.setItem("tableEnd", end);
+
   const tablesDiv = document.getElementById("tables");
   tablesDiv.innerHTML = "";
 
-  let start = parseInt(document.getElementById("rangeStart").value);
-  let end = parseInt(document.getElementById("rangeEnd").value);
+  // let start = parseInt(document.getElementById("rangeStart").value);
+  // let end = parseInt(document.getElementById("rangeEnd").value);
 
   for (let i = start; i <= end; i++) {
 
@@ -360,6 +367,20 @@ async function loadFullPayment(tableId) {
 
   // 👉 UI
   let row = document.createElement("div");
+  row.style.display = "flex";
+row.style.justifyContent = "space-between";
+row.style.alignItems = "center";
+row.style.gap = "10px";
+
+// 🔥 NEU (RAHMEN)
+row.style.border = "1px solid #ddd";
+row.style.borderRadius = "8px";
+row.style.padding = "8px 10px";
+row.style.margin = "6px 0";
+row.style.background = "#fff";
+row.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
+row.onmouseover = () => row.style.background = "#f9f9f9";
+row.onmouseout = () => row.style.background = "#fff";
 
   row.style.display = "flex";
   row.style.justifyContent = "center";
@@ -368,7 +389,33 @@ async function loadFullPayment(tableId) {
   row.style.margin = "5px 0";
 
   let name = document.createElement("span");
-  name.innerText = `${item.name}${extrasText} (${itemPrice.toFixed(2)}€)`;
+  // name.innerText = `${item.name}${extrasText} (${itemPrice.toFixed(2)}€)`;
+  name.innerHTML = `
+  <div style="
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+    font-weight:bold;
+    width: 380px;
+  ">
+    <span>${item.name}</span>
+    <span style="
+      margin-left:20px;
+      min-width:60px;
+      text-align:right;
+    ">
+      ${itemPrice.toFixed(2)}€
+    </span>
+  </div>
+
+  <div style="
+    font-size:11px;
+    margin-top:2px;
+    text-align:left;
+  ">
+    ${extrasText}
+  </div>
+`;
 
   let btn = document.createElement("button");
   btn.innerText = "❌";
@@ -539,48 +586,47 @@ await openTableDetails(table);
 document.addEventListener("DOMContentLoaded", () => {
 
   // 🔥 gespeicherte Werte laden
-  let savedStart = localStorage.getItem("tableStart");
-  let savedEnd = localStorage.getItem("tableEnd");
-  
-  if (savedStart) document.getElementById("rangeStart").value = savedStart;
-  if (savedEnd) document.getElementById("rangeEnd").value = savedEnd;
+  const savedStart = localStorage.getItem("tableStart");
+  const savedEnd = localStorage.getItem("tableEnd");
+
+  if (savedStart) {
+    document.getElementById("rangeStart").value = savedStart;
+  }
+
+  if (savedEnd) {
+    document.getElementById("rangeEnd").value = savedEnd;
+  }
 
   // 🔥 starten
   loadMenu();
   renderTables();
   loadSales();
 
-  window.addEventListener("online", () => {
-  console.log("🟢 Online");
-});
+  // 🔥 STATUS FUNKTION
+  function updateConnectionStatus() {
+    const el = document.getElementById("connectionStatus");
+    if (!el) return;
 
-window.addEventListener("offline", () => {
-  console.log("🔴 Offline");
-});
-
-function updateConnectionStatus() {
-  const el = document.getElementById("connectionStatus");
-
-  if (navigator.onLine) {
-    el.innerText = "🟢 Online";
-    el.style.background = "green";
-  } else {
-    el.innerText = "🔴 Offline";
-    el.style.background = "red";
+    if (navigator.onLine) {
+      el.innerText = "🟢 Online";
+      el.style.background = "green";
+    } else {
+      el.innerText = "🔴 Offline";
+      el.style.background = "red";
+    }
   }
-}
 
-// Events
-window.addEventListener("online", updateConnectionStatus);
-window.addEventListener("offline", updateConnectionStatus);
+  // 🔥 Events
+  window.addEventListener("online", updateConnectionStatus);
+  window.addEventListener("offline", updateConnectionStatus);
 
-// Initial setzen
-updateConnectionStatus();
+  // 🔥 Initial
+  updateConnectionStatus();
+
   // =========================
-  // 🔥 LIVE UPDATES (NEU)
+  // 🔥 LIVE UPDATES
   // =========================
 
-  // 👉 BAR
   onSnapshot(
     collection(db, "restaurants", restaurantId, "bar"),
     (snapshot) => {
@@ -590,7 +636,6 @@ updateConnectionStatus();
     }
   );
 
-  // 👉 KITCHEN
   onSnapshot(
     collection(db, "restaurants", restaurantId, "kitchen"),
     (snapshot) => {
@@ -599,7 +644,7 @@ updateConnectionStatus();
       });
     }
   );
-  
+
 });
 
 
@@ -627,7 +672,10 @@ async function openTableDetails(tableId) {
 
         let btn = document.createElement("button");
         btn.style.display = "block";
-        btn.style.width = "100%";
+        btn.style.width = "480px";
+        btn.style.maxWidth = "480px";
+        btn.style.margin = "4px auto";
+        btn.style.padding = "6px 10px";
 
         let extrasText = "";
 
@@ -641,12 +689,30 @@ async function openTableDetails(tableId) {
         qty: 1,
         extras: item.extras || []
 });
-        btn.innerHTML = `
-          ${item.name} (${displayPrice.toFixed(2)}€)
-          <div style="font-size:12px; text-align:left;">
-            ${extrasText}
-          </div>
-        `;
+btn.innerHTML = `
+  <div style="
+  display:flex;
+  justify-content: space-between;
+  align-items:center;
+  font-weight:bold;
+  line-height: 1.2;
+  ">
+    <span>${item.name}</span>
+    <span style="margin-left:15px;">
+      ${displayPrice.toFixed(2)}€
+    </span>
+  </div>
+
+  <div style="
+    font-size:11px;
+    text-align:left;
+    margin-top:1px;
+  ">
+    ${extrasText}
+  </div>
+`;
+// btn.style.padding = "10px";
+//btn.style.borderBottom = "1px solid #eee";
 
         let uniqueId = orderDoc.id + "_" + itemIndex + "_" + i;
 
