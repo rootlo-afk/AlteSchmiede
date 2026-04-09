@@ -13,27 +13,17 @@
 <body>
 
 <h1>🛠️ Admin Menü</h1>
-<h3>📁 Neue Kategorie</h3>
 
+<h3>📁 Neue Kategorie</h3>
 <input id="newCategory" placeholder="z.B. Salate">
 <button onclick="addCategory()">➕ Kategorie anlegen</button>
 
 <h2>➕ Neues Gericht</h2>
 
+<input id="name" placeholder="Name" style="width:300px;">
+<input id="price" type="number" step="0.01" placeholder="Preis" style="width:100px;">
 
-
-<input id="name" placeholder="Name">
-<input id="price" type="number" step="0.01" placeholder="Preis">
-
-
-
-<select id="category">
-  <option value="Salate">🥗 Salate</option>
-  <option value="Hauptgerichte">🍝 Hauptspeisen</option>
-  <option value="Getränke">🍺 Getränke</option>
-  <option value="Dessert">🍰 Dessert</option>
-  <option value="Extras">➕ Extras</option>
-</select>
+<select id="category"></select>
 
 <br>
 <button onclick="addItem()">➕ Speichern</button>
@@ -43,70 +33,83 @@
 <h2>📋 Speisekarte</h2>
 <div id="menuList"></div>
 
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase.js"></script>
+<script type="module">
 
-<script>
-var firebaseConfig = {
-  apiKey: "AIzaSyBF...",
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { 
+  getFirestore, 
+  collection, 
+  getDocs, 
+  addDoc, 
+  deleteDoc, 
+  doc, 
+  updateDoc,
+  setDoc 
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBFJ6n7f3U3qpfezvqTgx9vugOpMSp284o",
   authDomain: "oberkellner-app.firebaseapp.com",
-  databaseURL: "https://oberkellner-app-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "oberkellner-app",
+  projectId: "oberkellner-app"
 };
-firebase.initializeApp(firebaseConfig);
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// 🔥 FESTE RESTAURANT ID
+const restaurantId = "AlteSchmiede";
 
 const menuDiv = document.getElementById("menuList");
 
-// 🔥 Anzeige Menü
-firebase.database().ref("menu").on("value", snapshot => {
+// 🔥 Menü laden
+async function loadMenu() {
 
   menuDiv.innerHTML = "";
 
-  // 🔥 Kategorien sammeln
+  const catSnap = await getDocs(
+    collection(db, "restaurants", restaurantId, "kategorien")
+  );
+
   let categories = [];
 
-  snapshot.forEach(catSnap => {
+  catSnap.forEach(docSnap => {
     categories.push({
-      name: catSnap.key,
-      data: catSnap
+      id: docSnap.id,
+      ...docSnap.data()
     });
   });
 
-  // 🎯 gewünschte Reihenfolge
   const order = ["Getränke", "Salate", "Hauptgerichte", "Extras", "Dessert"];
 
-  // 🔥 sortieren
   categories.sort((a, b) => {
     return order.indexOf(a.name) - order.indexOf(b.name);
   });
 
-  // 🔥 anzeigen
-  categories.forEach(cat => {
-
-    let catName = cat.name;
-    let catSnap = cat.data;
+  for (const cat of categories) {
 
     let catTitle = document.createElement("h3");
-    catTitle.innerText = catName;
+    catTitle.innerText = getCategoryIcon(cat.name) + " " + cat.name;
     menuDiv.appendChild(catTitle);
 
-// 🔥 Items sammeln
-let items = [];
+    const prodSnap = await getDocs(
+      collection(db, "restaurants", restaurantId, "kategorien", cat.id, "produkte")
+    );
 
-catSnap.forEach(itemSnap => {
-  items.push({
-    key: itemSnap.key,
-    ...itemSnap.val()
-  });
-});
+    let items = [];
 
-// 🔥 nach Preis sortieren (aufsteigend)
-items.sort((a, b) => a.price - b.price);
+    prodSnap.forEach(p => {
+      items.push({
+        id: p.id,
+        ...p.data()
+      });
+    });
 
-// 🔥 anzeigen
-items.forEach(item => {
+    items.sort((a, b) => a.price - b.price);
 
-  let div = document.createElement("div");
-  div.className = "item";
+    items.forEach(item => {
+
+      let div = document.createElement("div");
+      div.className = "item";
 
 div.innerHTML = `
   <div style="
@@ -118,6 +121,7 @@ div.innerHTML = `
     padding:8px 10px;
     margin:6px 0;
     background:#fff;
+    style="opacity:${item.active === false ? 0.4 : 1}"
   ">
 
     <!-- NAME + PREIS -->
@@ -143,22 +147,52 @@ div.innerHTML = `
 
     <!-- BUTTONS -->
     <div style="display:flex; gap:6px; margin-left:10px;">
-      <button onclick="editItem('${catName}', '${item.key}', '${item.name}', ${item.price})">✏️</button>
-      <button onclick="deleteItem('${catName}', '${item.key}')">❌</button>
+<button onclick="editItem('${cat.id}', '${item.id}', '${item.name}', ${item.price})">✏️</button>
+<button onclick="deleteItem('${cat.id}', '${item.id}')">❌</button>
+<button onclick="toggleActive('${cat.id}', '${item.id}', ${item.active !== false})">
+  ${item.active === false ? "👁️‍🗨️" : "🚫"}
+</button>
+
     </div>
 
   </div>
 `;
 
-  menuDiv.appendChild(div);
-});
+      menuDiv.appendChild(div);
+    });
+  }
+}
 
-  });
+// ➕ Kategorie hinzufügen
+window.addCategory = async function() {
 
-});
+  let name = document.getElementById("newCategory").value.trim();
 
-// ➕ hinzufügen
-function addItem() {
+  if (!name) {
+    alert("Name fehlt!");
+    return;
+  }
+
+  await setDoc(
+    doc(db, "restaurants", restaurantId, "kategorien", name),
+    { name: name }
+  );
+
+  let select = document.getElementById("category");
+
+  let option = document.createElement("option");
+  option.value = name;
+  option.text = "📁 " + name;
+
+  select.appendChild(option);
+
+  document.getElementById("newCategory").value = "";
+
+  loadMenu();
+}
+
+// ➕ Gericht hinzufügen
+window.addItem = async function() {
 
   let name = document.getElementById("name").value;
   let price = parseFloat(document.getElementById("price").value);
@@ -171,59 +205,96 @@ function addItem() {
     return;
   }
 
-  firebase.database().ref("menu/" + category).push({
-    name: name,
-    price: price,
-    type: type,
-    order: Date.now()
-  });
+  await addDoc(
+    collection(db, "restaurants", restaurantId, "kategorien", category, "produkte"),
+{
+  name: name,
+  price: price,
+  type: type,
+  order: Date.now(),
+  active: true // 🔥 STANDARD = sichtbar
+}
+  );
 
   document.getElementById("name").value = "";
   document.getElementById("price").value = "";
+
+  loadMenu();
 }
 
 // ❌ löschen
-function deleteItem(category, key) {
+window.deleteItem = async function(category, id) {
+
   if (!confirm("Löschen?")) return;
 
-  firebase.database().ref(`menu/${category}/${key}`).remove();
+  await deleteDoc(
+    doc(db, "restaurants", restaurantId, "kategorien", category, "produkte", id)
+  );
+
+  loadMenu();
 }
 
 // ✏️ bearbeiten
-function editItem(category, key, name, price) {
+window.editItem = async function(category, id, name, price) {
+
   let newName = prompt("Name:", name);
   let newPrice = prompt("Preis:", price);
 
   if (!newName || !newPrice) return;
 
-  firebase.database().ref(`menu/${category}/${key}`).update({
-    name: newName,
-    price: parseFloat(newPrice)
-  });
+  await updateDoc(
+    doc(db, "restaurants", restaurantId, "kategorien", category, "produkte", id),
+    {
+      name: newName,
+      price: parseFloat(newPrice)
+    }
+  );
+
+  loadMenu();
 }
-// 📁 Kategorie hinzufügen
-function addCategory() {
 
-  let name = document.getElementById("newCategory").value.trim();
+async function loadCategoriesDropdown() {
 
-  if (!name) {
-    alert("Name fehlt!");
-    return;
-  }
+  const select = document.getElementById("category");
+  select.innerHTML = "";
 
-  // Kategorie als leeres Objekt anlegen
-  firebase.database().ref("menu/" + name).set({});
+  const snap = await getDocs(
+    collection(db, "restaurants", restaurantId, "kategorien")
+  );
 
-  // optional direkt ins Dropdown aufnehmen
-  let select = document.getElementById("category");
+  let categories = [];
 
-  let option = document.createElement("option");
-  option.value = name;
-  option.text = "📁 " + name;
+  snap.forEach(doc => {
+    categories.push({
+      id: doc.id,
+      ...doc.data()
+    });
+  });
 
-  select.appendChild(option);
+  // 🔥 gewünschte Reihenfolge
+  const order = ["Getränke", "Salate", "Hauptgerichte", "kleine Snacks", "Extras", "Dessert"];
 
-  document.getElementById("newCategory").value = "";
+  // 🔥 sortieren
+categories.sort((a, b) => {
+  let indexA = order.indexOf(a.name);
+  let indexB = order.indexOf(b.name);
+
+  if (indexA === -1) indexA = 999;
+  if (indexB === -1) indexB = 999;
+
+  return indexA - indexB;
+});
+
+  // 🔥 Dropdown befüllen
+  categories.forEach(cat => {
+
+    let option = document.createElement("option");
+    option.value = cat.id;
+    option.text = getCategoryIcon(cat.name) + " " + cat.name;
+
+    select.appendChild(option);
+  });
+
 }
 
 function getCategoryIcon(name) {
@@ -236,6 +307,20 @@ function getCategoryIcon(name) {
     default: return "📦";
   }
 }
+window.toggleActive = async function(category, id, current) {
+
+  await updateDoc(
+    doc(db, "restaurants", restaurantId, "kategorien", category, "produkte", id),
+    {
+      active: !current
+    }
+  );
+
+  loadMenu();
+}
+// 🔥 Start
+loadMenu();
+loadCategoriesDropdown(); // 🔥 DAS FEHLT
 
 </script>
 
