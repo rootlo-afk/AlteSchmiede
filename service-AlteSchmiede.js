@@ -89,11 +89,22 @@ async function loadMenu() {
   });
 
   // 🔥 SORTIERUNG WIE FRÜHER
-  const order = ["Getränke", "Salate", "Hauptgerichte", "Extras", "Dessert"];
 
-  categories.sort((a, b) => {
-    return order.indexOf(a.name) - order.indexOf(b.name);
-  });
+
+const order = ["Getränke", "Salate", "kleine Snacks", "Hauptgerichte", "Extras", "Dessert"];
+
+categories.sort((a, b) => {
+
+  let indexA = order.indexOf(a.name);
+  let indexB = order.indexOf(b.name);
+
+  if (indexA === -1) indexA = 999;
+  if (indexB === -1) indexB = 999;
+
+  return indexA - indexB;
+
+});
+
 
   // 🔥 ANZEIGE
   for (const cat of categories) {
@@ -108,13 +119,20 @@ async function loadMenu() {
 
     let items = [];
 
-    prodSnap.forEach(doc => {
-      items.push({
-        id: doc.id,
-        ...doc.data(),
-        category: cat.name
-      });
-    });
+prodSnap.forEach(doc => {
+
+  const data = doc.data();
+
+  // 🔥 FILTER: nur aktive anzeigen
+  if (data.active === true) return;
+
+  items.push({
+    id: doc.id,
+    ...data,
+    category: cat.name
+  });
+
+});
 
     // 🔥 SORTIERUNG WIE FRÜHER
     items.sort((a, b) => a.name.localeCompare(b.name, "de"));
