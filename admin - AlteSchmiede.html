@@ -1,123 +1,241 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Theke</title>
+  <title>Admin Menü</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <style>
-    body { font-family: Arial; }
-    .order {
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin: 10px;
-      border-radius: 10px;
-    }
-    .fertig {
-      background: #2ecc71;
-      color: white;
-    }
-    button {
-      padding: 10px;
-      margin-top: 10px;
-      cursor: pointer;
-    }
+    body { font-family: Arial; text-align: center; background: #f5f5f5; }
+    input, button, select { padding: 10px; margin: 5px; font-size: 16px; }
+    .item { margin: 10px; padding: 10px; background: white; border-radius: 10px; }
   </style>
 </head>
-
 <body>
 
-<h1>🍺 Theke</h1>
-<div id="orders"></div>
+<h1>🛠️ Admin Menü</h1>
+<h3>📁 Neue Kategorie</h3>
 
-<script type="module">
+<input id="newCategory" placeholder="z.B. Salate">
+<button onclick="addCategory()">➕ Kategorie anlegen</button>
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+<h2>➕ Neues Gericht</h2>
 
-import {
-  getFirestore,
-  collection,
-  getDocs,
-  doc,
-  updateDoc,
-  onSnapshot
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// 🔥 FIREBASE CONFIG
-const firebaseConfig = {
-  apiKey: "AIzaSyBFJ6n7f3U3qpfezvqTgx9vugOpMSp284o",
+
+<input id="name" placeholder="Name">
+<input id="price" type="number" step="0.01" placeholder="Preis">
+
+
+
+<select id="category">
+  <option value="Salate">🥗 Salate</option>
+  <option value="Hauptgerichte">🍝 Hauptspeisen</option>
+  <option value="Getränke">🍺 Getränke</option>
+  <option value="Dessert">🍰 Dessert</option>
+  <option value="Extras">➕ Extras</option>
+</select>
+
+<br>
+<button onclick="addItem()">➕ Speichern</button>
+
+<hr>
+
+<h2>📋 Speisekarte</h2>
+<div id="menuList"></div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase.js"></script>
+
+<script>
+var firebaseConfig = {
+  apiKey: "AIzaSyBF...",
   authDomain: "oberkellner-app.firebaseapp.com",
-  projectId: "oberkellner-app"
+  databaseURL: "https://oberkellner-app-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "oberkellner-app",
 };
+firebase.initializeApp(firebaseConfig);
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const menuDiv = document.getElementById("menuList");
 
-const restaurantId = "AlteSchmiede";
-const ordersDiv = document.getElementById("orders");
+// 🔥 Anzeige Menü
+firebase.database().ref("menu").on("value", snapshot => {
 
+  menuDiv.innerHTML = "";
 
-// 🔥 LIVE SYSTEM (KEIN RELOAD MEHR)
-onSnapshot(
-  collection(db, "restaurants", restaurantId, "bar"),
-  async (tablesSnap) => {
+  // 🔥 Kategorien sammeln
+  let categories = [];
 
-    ordersDiv.innerHTML = "";
+  snapshot.forEach(catSnap => {
+    categories.push({
+      name: catSnap.key,
+      data: catSnap
+    });
+  });
 
-    for (const tableDoc of tablesSnap.docs) {
+  // 🎯 gewünschte Reihenfolge
+  const order = ["Getränke", "Salate", "Hauptgerichte", "Extras", "Dessert"];
 
-      const tableId = tableDoc.id;
+  // 🔥 sortieren
+  categories.sort((a, b) => {
+    return order.indexOf(a.name) - order.indexOf(b.name);
+  });
 
-      // 👉 Orders laden
-      const ordersSnap = await getDocs(
-        collection(db, "restaurants", restaurantId, "bar", tableId, "orders")
-      );
+  // 🔥 anzeigen
+  categories.forEach(cat => {
 
-      // ❌ wenn keine Orders → Tisch NICHT anzeigen
-      if (ordersSnap.empty) continue;
+    let catName = cat.name;
+    let catSnap = cat.data;
 
-      let tableDiv = document.createElement("div");
-      tableDiv.innerHTML = `<h2>🪑 Tisch ${tableId}</h2>`;
+    let catTitle = document.createElement("h3");
+    catTitle.innerText = catName;
+    menuDiv.appendChild(catTitle);
 
-      ordersSnap.forEach(orderDoc => {
+// 🔥 Items sammeln
+let items = [];
 
-        let data = orderDoc.data();
+catSnap.forEach(itemSnap => {
+  items.push({
+    key: itemSnap.key,
+    ...itemSnap.val()
+  });
+});
 
-        let orderDiv = document.createElement("div");
-        orderDiv.className = "order";
+// 🔥 nach Preis sortieren (aufsteigend)
+items.sort((a, b) => a.price - b.price);
 
-        // ✅ fertig = grün
-        if (data.status === "fertig") {
-          orderDiv.classList.add("fertig");
-        }
+// 🔥 anzeigen
+items.forEach(item => {
 
-        let items = data.items
-          .map(i => `• ${i.name} x${i.qty}`)
-          .join("<br>");
+  let div = document.createElement("div");
+  div.className = "item";
 
-        orderDiv.innerHTML = items;
+div.innerHTML = `
+  <div style="
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+    border:1px solid #ddd;
+    border-radius:8px;
+    padding:8px 10px;
+    margin:6px 0;
+    background:#fff;
+  ">
 
-        // ✅ Fertig Button
-        if (data.status !== "fertig") {
+    <!-- NAME + PREIS -->
+    <div style="
+      display:flex;
+      justify-content: space-between;
+      align-items:center;
+      flex:1;
+      font-weight:bold;
+      gap:15px;
+    ">
+      <span style="text-align:left;">
+        ${item.name}
+      </span>
 
-          let btn = document.createElement("button");
-          btn.innerText = "✅ Fertig";
+      <span style="
+        min-width:70px;
+        text-align:right;
+      ">
+        ${item.price.toFixed(2)}€
+      </span>
+    </div>
 
-          btn.onclick = async () => {
-            await updateDoc(
-              doc(db, "restaurants", restaurantId, "bar", tableId, "orders", orderDoc.id),
-              { status: "fertig" }
-            );
-          };
+    <!-- BUTTONS -->
+    <div style="display:flex; gap:6px; margin-left:10px;">
+      <button onclick="editItem('${catName}', '${item.key}', '${item.name}', ${item.price})">✏️</button>
+      <button onclick="deleteItem('${catName}', '${item.key}')">❌</button>
+    </div>
 
-          orderDiv.appendChild(document.createElement("br"));
-          orderDiv.appendChild(btn);
-        }
+  </div>
+`;
 
-        tableDiv.appendChild(orderDiv);
-      });
+  menuDiv.appendChild(div);
+});
 
-      ordersDiv.appendChild(tableDiv);
-    }
+  });
+
+});
+
+// ➕ hinzufügen
+function addItem() {
+
+  let name = document.getElementById("name").value;
+  let price = parseFloat(document.getElementById("price").value);
+  let category = document.getElementById("category").value;
+
+  let type = (category === "Getränke") ? "drink" : "food";
+
+  if (!name || !price) {
+    alert("Name & Preis nötig!");
+    return;
   }
-);
+
+  firebase.database().ref("menu/" + category).push({
+    name: name,
+    price: price,
+    type: type,
+    order: Date.now()
+  });
+
+  document.getElementById("name").value = "";
+  document.getElementById("price").value = "";
+}
+
+// ❌ löschen
+function deleteItem(category, key) {
+  if (!confirm("Löschen?")) return;
+
+  firebase.database().ref(`menu/${category}/${key}`).remove();
+}
+
+// ✏️ bearbeiten
+function editItem(category, key, name, price) {
+  let newName = prompt("Name:", name);
+  let newPrice = prompt("Preis:", price);
+
+  if (!newName || !newPrice) return;
+
+  firebase.database().ref(`menu/${category}/${key}`).update({
+    name: newName,
+    price: parseFloat(newPrice)
+  });
+}
+// 📁 Kategorie hinzufügen
+function addCategory() {
+
+  let name = document.getElementById("newCategory").value.trim();
+
+  if (!name) {
+    alert("Name fehlt!");
+    return;
+  }
+
+  // Kategorie als leeres Objekt anlegen
+  firebase.database().ref("menu/" + name).set({});
+
+  // optional direkt ins Dropdown aufnehmen
+  let select = document.getElementById("category");
+
+  let option = document.createElement("option");
+  option.value = name;
+  option.text = "📁 " + name;
+
+  select.appendChild(option);
+
+  document.getElementById("newCategory").value = "";
+}
+
+function getCategoryIcon(name) {
+  switch (name) {
+    case "Getränke": return "🍺";
+    case "Salate": return "🥗";
+    case "Hauptgerichte": return "🍽️";
+    case "Extras": return "➕";
+    case "Dessert": return "🍰";
+    default: return "📦";
+  }
+}
 
 </script>
 
