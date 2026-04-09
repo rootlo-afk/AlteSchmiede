@@ -88,54 +88,49 @@ async function loadMenu() {
     });
   });
 
-  // 🔥 SORTIERUNG WIE FRÜHER
+  // 🔥 SORTIERUNG (NUR EINMAL!)
+  const order = ["Getränke", "Salate", "kleine Snacks", "Hauptgerichte", "Extras", "Dessert"];
 
+  categories.sort((a, b) => {
+    let indexA = order.indexOf(a.name);
+    let indexB = order.indexOf(b.name);
 
-const order = ["Getränke", "Salate", "kleine Snacks", "Hauptgerichte", "Extras", "Dessert"];
+    if (indexA === -1) indexA = 999;
+    if (indexB === -1) indexB = 999;
 
-categories.sort((a, b) => {
-
-  let indexA = order.indexOf(a.name);
-  let indexB = order.indexOf(b.name);
-
-  if (indexA === -1) indexA = 999;
-  if (indexB === -1) indexB = 999;
-
-  return indexA - indexB;
-
-});
-
+    return indexA - indexB;
+  });
 
   // 🔥 ANZEIGE
   for (const cat of categories) {
 
-    let div = document.createElement("div");
-    div.innerHTML = `<h4>${cat.name}</h4>`;
-
-    // 🔥 PRODUKTE LADEN
     const prodSnap = await getDocs(
       collection(db, "restaurants", "AlteSchmiede", "kategorien", cat.id, "produkte")
     );
 
     let items = [];
 
-prodSnap.forEach(doc => {
+    prodSnap.forEach(doc => {
 
-  const data = doc.data();
+      const data = doc.data();
 
-  // 🔥 FILTER: nur aktive anzeigen
-  if (data.active === true) return;
+      // 🔥 RICHTIGER FILTER
+      if (data.active === true) return;
 
-  items.push({
-    id: doc.id,
-    ...data,
-    category: cat.name
-  });
+      items.push({
+        id: doc.id,
+        ...data,
+        category: cat.name
+      });
 
-});
+    });
 
-    // 🔥 SORTIERUNG WIE FRÜHER
-    items.sort((a, b) => a.name.localeCompare(b.name, "de"));
+    // 🔥 WICHTIG: LEERE KATEGORIE ÜBERSPRINGEN
+    if (items.length === 0) continue;
+
+    // 👉 ERST JETZT DIV + TITEL
+    let div = document.createElement("div");
+    div.innerHTML = `<h4>${cat.name}</h4>`;
 
     // 🔥 BUTTONS
     items.forEach(item => {
@@ -150,15 +145,12 @@ prodSnap.forEach(doc => {
       btn.onmouseout = () => btn.style.background = "#f8f9fa";
 
       btn.innerText = item.name + " (" + Number(item.price).toFixed(2) + "€)";
+
       if (cat.name === "Extras") {
-
-  btn.onclick = () => addExtraToItem(item);
-
-} else {
-
-  btn.onclick = () => addToCart(item);
-
-}
+        btn.onclick = () => addExtraToItem(item);
+      } else {
+        btn.onclick = () => addToCart(item);
+      }
 
       div.appendChild(btn);
     });
