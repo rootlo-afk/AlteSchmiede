@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Theke</title>
+  <style>
+    body { font-family: Arial; }
+    .order {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin: 10px;
+      border-radius: 10px;
+    }
+    .fertig {
+      background: #2ecc71;
+      color: white;
+    }
+    button {
+      padding: 10px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>🍺 Theke</h1>
+<div id="orders"></div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  doc,
+  updateDoc,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// 🔥 FIREBASE CONFIG
+const firebaseConfig = {
+  apiKey: "AIzaSyBFJ6n7f3U3qpfezvqTgx9vugOpMSp284o",
+  authDomain: "oberkellner-app.firebaseapp.com",
+  projectId: "oberkellner-app"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const restaurantId = "AlteSchmiede";
+const ordersDiv = document.getElementById("orders");
+
+
+// 🔥 LIVE SYSTEM (KEIN RELOAD MEHR)
+onSnapshot(
+  collection(db, "restaurants", restaurantId, "bar"),
+  async (tablesSnap) => {
+
+    ordersDiv.innerHTML = "";
+
+    for (const tableDoc of tablesSnap.docs) {
+
+      const tableId = tableDoc.id;
+
+      // 👉 Orders laden
+      const ordersSnap = await getDocs(
+        collection(db, "restaurants", restaurantId, "bar", tableId, "orders")
+      );
+
+      // ❌ wenn keine Orders → Tisch NICHT anzeigen
+      if (ordersSnap.empty) continue;
+
+      let tableDiv = document.createElement("div");
+      tableDiv.innerHTML = `<h2>🪑 Tisch ${tableId}</h2>`;
+
+      ordersSnap.forEach(orderDoc => {
+
+        let data = orderDoc.data();
+
+        let orderDiv = document.createElement("div");
+        orderDiv.className = "order";
+
+        // ✅ fertig = grün
+        if (data.status === "fertig") {
+          orderDiv.classList.add("fertig");
+        }
+
+        let items = data.items
+          .map(i => `• ${i.name} x${i.qty}`)
+          .join("<br>");
+
+        orderDiv.innerHTML = items;
+
+        // ✅ Fertig Button
+        if (data.status !== "fertig") {
+
+          let btn = document.createElement("button");
+          btn.innerText = "✅ Fertig";
+
+          btn.onclick = async () => {
+            await updateDoc(
+              doc(db, "restaurants", restaurantId, "bar", tableId, "orders", orderDoc.id),
+              { status: "fertig" }
+            );
+          };
+
+          orderDiv.appendChild(document.createElement("br"));
+          orderDiv.appendChild(btn);
+        }
+
+        tableDiv.appendChild(orderDiv);
+      });
+
+      ordersDiv.appendChild(tableDiv);
+    }
+  }
+);
+
+</script>
+
+</body>
+</html>

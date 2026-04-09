@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Küche</title>
+  <style>
+    body { font-family: Arial; }
+    .order {
+      padding: 10px;
+      margin: 10px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+    }
+    .offen { background: #eee; }
+    .fertig { background: #2ecc71; color: white; }
+    button {
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>👨‍🍳 Küche</h1>
+<div id="orders"></div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+
+import {
+  getFirestore,
+  collection,
+  doc,
+  updateDoc,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// 🔥 Firebase Config
+const firebaseConfig = {
+  apiKey: "AIzaSyBFJ6n7f3U3qpfezvqTgx9vugOpMSp284o",
+  authDomain: "oberkellner-app.firebaseapp.com",
+  projectId: "oberkellner-app"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const restaurantId = "AlteSchmiede";
+const ordersDiv = document.getElementById("orders");
+
+
+const tableListeners = {};
+
+function startKitchenLive() {
+
+  const kitchenRef = collection(db, "restaurants", restaurantId, "kitchen");
+
+  onSnapshot(kitchenRef, (tablesSnap) => {
+
+    tablesSnap.forEach(tableDoc => {
+
+      const tableId = tableDoc.id;
+
+      // 👉 verhindert doppelte Listener
+      if (tableListeners[tableId]) return;
+
+      let tableDiv = document.createElement("div");
+      tableDiv.id = "table_" + tableId;
+      tableDiv.innerHTML = `<h2>🪑 Tisch ${tableId}</h2>`;
+
+      let contentDiv = document.createElement("div");
+      tableDiv.appendChild(contentDiv);
+
+      ordersDiv.appendChild(tableDiv);
+
+      // 🔥 LIVE ORDERS
+      const unsub = onSnapshot(
+        collection(db, "restaurants", restaurantId, "kitchen", tableId, "orders"),
+        (ordersSnap) => {
+
+          contentDiv.innerHTML = "";
+
+          // ❌ wenn leer → entfernen
+          if (ordersSnap.empty) {
+            tableDiv.remove();
+            delete tableListeners[tableId];
+            return;
+          }
+
+          ordersSnap.forEach(orderDoc => {
+
+            let data = orderDoc.data();
+
+            let orderDiv = document.createElement("div");
+            orderDiv.className = "order";
+
+            if (data.status === "fertig") {
+              orderDiv.classList.add("fertig");
+            }
+
+            // 🔥 ITEMS + EXTRAS
+            let itemsHtml = data.items.map(i => {
+
+              let extras = "";
+
+              if (i.extras && i.extras.length > 0) {
+                extras = "<br>" + i.extras.map(e => "➕ " + e.name).join("<br>");
+              }
+
+              return `• ${i.name} x${i.qty}${extras}`;
+
+            }).join("<br>");
+
+            orderDiv.innerHTML = itemsHtml;
+
+            // 👉 Button
+            if (data.status !== "fertig") {
+
+              let btn = document.createElement("button");
+              btn.innerText = "✅ Fertig";
+
+              btn.onclick = async () => {
+
+                // Küche fertig
+                await updateDoc(
+                  doc(
+                    db,
+                    "restaurants",
+                    restaurantId,
+                    "kitchen",
+                    tableId,
+                    "orders",
+                    orderDoc.id
+                  ),
+                  { status: "fertig" }
+                );
+                  await updateDoc(
+                  doc(
+                    db,
+                    "restaurants",
+                    restaurantId,
+                    "kitchen",
+                    tableId
+                  ),
+                  { status: "fertig",updated: Date.now() }
+                );
+
+                // 🔥 Service synchronisieren
+                await updateDoc(
+                  doc(
+                    db,
+                    "restaurants",
+                    restaurantId,
+                    "tables",
+                    tableId,
+                    "orders",
+                    orderDoc.id
+                  ),
+                  { status: "fertig" }
+                );
+              };
+
+              orderDiv.appendChild(document.createElement("br"));
+              orderDiv.appendChild(btn);
+            }
+
+            contentDiv.appendChild(orderDiv);
+          });
+
+        }
+      );
+
+      tableListeners[tableId] = unsub;
+    });
+
+  });
+}
+// loadKitchen();
+startKitchenLive();
+</script>
+
+</body>
+</html>

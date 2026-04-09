@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Service</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body { font-family: Arial; text-align: center; }
+    button { padding: 15px; margin: 5px; font-size: 18px; }
+    .container { display: flex; }
+    .left { width: 50%; padding: 10px; }
+    .right { width: 50%; padding: 10px; background: #f5f5f5; }
+  </style>
+</head>
+
+<body>
+
+<h1>Bestellung</h1>
+
+<select id="table"></select><br>
+
+<div id="categories"></div>
+
+<h2>Warenkorb</h2>
+<div id="cart"></div>
+<h3 id="total">Neue Bestellung: 0€</h3>
+
+<button onclick="sendOrder()">✅ Senden</button>
+
+<hr>
+
+<div id="connectionStatus" style="
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: white;
+  font-weight: bold;
+  background: green;
+  z-index: 999;
+">
+  🟢 Online
+</div>
+<div class="container">
+
+  <!-- LINKS -->
+  <div class="left">
+
+<div style="
+  display:flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+">
+
+  <h2 style="margin:0; margin-left:10px;">Tische</h2>
+
+  <div style="display:flex; gap:10px; align-items:center;">
+    Von <input id="rangeStart" type="number" value="1" style="width:70px; padding:8px;">
+    Bis <input id="rangeEnd" type="number" value="10" style="width:70px; padding:8px;">
+    <button onclick="renderTables()" style="padding:8px 12px; font-size:14px;">
+      Anzeigen
+    </button>
+  </div>
+
+</div>
+
+    <div id="tables" style="
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+"></div>
+  </div>
+
+  <!-- RECHTS -->
+<div class="right">
+
+  <div style="text-align:right; font-size:12px;">
+    📅 Heute: <span id="salesToday">0€</span><br>
+    📆 Monat: <span id="salesMonth">0€</span>
+  </div>
+
+  <h2>💳 Zahlung</h2>
+
+  <div id="payment"></div>
+
+  <h3 id="payTotal">0€</h3>
+
+  <button onclick="confirmPayment()">✅ Bezahlen</button>
+
+</div>
+
+</div>
+
+<script type="module" src="service-AlteSchmiede.js"></script>
+
+</body>
+</html>
