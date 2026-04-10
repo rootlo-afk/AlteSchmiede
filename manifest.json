@@ -2,10 +2,12 @@
   "name": "Alte Schmiede",
   "short_name": "Service",
   "start_url": "./service-AlteSchmiede.html",
+  "id": "/AlteSchmiede/",
   "display": "standalone",
   "background_color": "#2c3e50",
   "theme_color": "#2c3e50",
   "orientation": "portrait",
+
   "icons": [
     {
       "src": "icon-192.png",
@@ -15,6 +17,14 @@
     {
       "src": "icon-512.png",
       "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+
+  "screenshots": [
+    {
+      "src": "screenshot1.png",
+      "sizes": "1080x1920",
       "type": "image/png"
     }
   ]
