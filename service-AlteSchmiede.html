@@ -217,12 +217,17 @@
 </div>
 
 </div>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js")
-    .then(() => console.log("SW aktiv"))
-    .catch(err => console.log("SW Fehler", err));
-}
+
+<script type="module" src="service-AlteSchmiede.js"></script>
 <script type="module" src="service-AlteSchmiede.js"></script>
 
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js");
+}
+</script>
+
+</body>
+</html>
 </body>
 </html>
