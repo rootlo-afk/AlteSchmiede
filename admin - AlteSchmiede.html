@@ -8,6 +8,16 @@
     body { font-family: Arial; text-align: center; background: #f5f5f5; }
     input, button, select { padding: 10px; margin: 5px; font-size: 16px; }
     .item { margin: 10px; padding: 10px; background: white; border-radius: 10px; }
+    #colorPreview {
+  width: 40px;
+  height: 40px;
+  display: inline-block;
+  margin-left: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  vertical-align: middle;
+}
+
   </style>
 </head>
 <body>
@@ -15,13 +25,15 @@
 <h1>🛠️ Admin Menü</h1>
 
 <h3>📁 Neue Kategorie</h3>
-<input id="newCategory" placeholder="z.B. Salate">
+<input id="catName" placeholder="z.B. Salate">
 <button onclick="addCategory()">➕ Kategorie anlegen</button>
 
 <h2>➕ Neues Gericht</h2>
 
 <input id="name" placeholder="Name" style="width:300px;">
 <input id="price" type="number" step="0.01" placeholder="Preis" style="width:100px;">
+
+
 
 <select id="category"></select>
 
@@ -61,6 +73,8 @@ const restaurantId = "AlteSchmiede";
 
 const menuDiv = document.getElementById("menuList");
 
+
+
 // 🔥 Menü laden
 async function loadMenu() {
 
@@ -87,9 +101,55 @@ async function loadMenu() {
 
   for (const cat of categories) {
 
-    let catTitle = document.createElement("h3");
-    catTitle.innerText = getCategoryIcon(cat.name) + " " + cat.name;
-    menuDiv.appendChild(catTitle);
+let catTitle = document.createElement("div");
+
+catTitle.style.display = "flex";
+catTitle.style.alignItems = "center";
+catTitle.style.justifyContent = "center";
+catTitle.style.gap = "10px";
+catTitle.style.marginTop = "20px";
+
+// 🎨 Farbbox
+let colorBox = document.createElement("div");
+colorBox.style.width = "15px";
+colorBox.style.height = "15px";
+colorBox.style.borderRadius = "4px";
+colorBox.style.background = cat.color || "#ccc";
+
+// 🏷️ Text
+let titleText = document.createElement("span");
+titleText.innerText = getCategoryIcon(cat.name) + " " + cat.name;
+titleText.style.fontWeight = "bold";
+
+catTitle.appendChild(colorBox);
+catTitle.appendChild(titleText);
+catTitle.style.background = cat.color || "#eee";
+catTitle.style.padding = "5px 10px";
+catTitle.style.borderRadius = "8px";
+catTitle.style.cursor = "pointer";
+
+
+catTitle.onclick = () => {
+
+  let picker = document.createElement("input");
+  picker.type = "color";
+  picker.value = cat.color || "#3498db";
+
+  picker.oninput = async () => {
+
+    await updateDoc(
+      doc(db, "restaurants", restaurantId, "kategorien", cat.id),
+      {
+        color: picker.value
+      }
+    );
+
+    loadMenu();
+  };
+
+  picker.click();
+};
+menuDiv.appendChild(catTitle);
 
     const prodSnap = await getDocs(
       collection(db, "restaurants", restaurantId, "kategorien", cat.id, "produkte")
@@ -104,7 +164,20 @@ async function loadMenu() {
       });
     });
 
-    items.sort((a, b) => a.price - b.price);
+    items.sort((a, b) => {
+
+  let orderA = a.order ?? 999;
+  let orderB = b.order ?? 999;
+
+  // 🔥 zuerst nach ORDER
+  if (orderA !== orderB) {
+    return orderA - orderB;
+  }
+
+  // 🔥 dann alphabetisch
+  return a.name.localeCompare(b.name, "de", { sensitivity: "base" });
+
+});
 
     items.forEach(item => {
 
@@ -133,9 +206,21 @@ div.innerHTML = `
       font-weight:bold;
       gap:15px;
     ">
-      <span style="text-align:left;">
-        ${item.name}
-      </span>
+<div style="display:flex; align-items:center; gap:10px;">
+
+
+  <!-- ORDER -->
+  <input 
+    type="number" 
+    value="${item.order ?? 0}" 
+    style="width:60px;"
+    onchange="updateOrder('${cat.id}', '${item.id}', this.value)"
+  >
+
+  <!-- NAME -->
+  <span>${item.name}</span>
+
+</div>
 
       <span style="
         min-width:70px;
@@ -163,33 +248,44 @@ div.innerHTML = `
   }
 }
 
-// ➕ Kategorie hinzufügen
 window.addCategory = async function() {
 
-  let name = document.getElementById("newCategory").value.trim();
+  const nameInput = document.getElementById("catName");
+  const colorInput = document.getElementById("catColor");
+
+  const name = nameInput.value.trim();
+  const color = colorInput.value;
 
   if (!name) {
     alert("Name fehlt!");
     return;
   }
 
-  await setDoc(
-    doc(db, "restaurants", restaurantId, "kategorien", name),
-    { name: name }
+  // 🔥 NUR EINMAL speichern
+  await addDoc(
+    collection(db, "restaurants", "AlteSchmiede", "kategorien"),
+    {
+      name: name,
+      color: color
+    }
   );
 
+  // 🔄 Dropdown direkt erweitern (optional)
   let select = document.getElementById("category");
 
-  let option = document.createElement("option");
-  option.value = name;
-  option.text = "📁 " + name;
+  if (select) {
+    let option = document.createElement("option");
+    option.value = name;
+    option.text = "📁 " + name;
+    select.appendChild(option);
+  }
 
-  select.appendChild(option);
+  // 🔄 Felder leeren
+  nameInput.value = "";
 
-  document.getElementById("newCategory").value = "";
-
+  // 🔄 Menü neu laden
   loadMenu();
-}
+};
 
 // ➕ Gericht hinzufügen
 window.addItem = async function() {
@@ -318,6 +414,31 @@ window.toggleActive = async function(category, id, current) {
 
   loadMenu();
 }
+window.updateOrder = async function(category, id, newOrder) {
+
+  await updateDoc(
+    doc(db, "restaurants", restaurantId, "kategorien", category, "produkte", id),
+    {
+      order: Number(newOrder)
+    }
+  );
+
+  loadMenu();
+}
+document.addEventListener("DOMContentLoaded", () => {
+
+
+
+  if (catColor && preview) {
+
+    // Startwert anzeigen
+    preview.style.background = catColor.value;
+
+
+
+  }
+
+});
 // 🔥 Start
 loadMenu();
 loadCategoriesDropdown(); // 🔥 DAS FEHLT
