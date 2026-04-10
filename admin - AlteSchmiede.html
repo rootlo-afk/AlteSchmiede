@@ -427,14 +427,16 @@ window.updateOrder = async function(category, id, newOrder) {
 }
 document.addEventListener("DOMContentLoaded", () => {
 
-
+  const catColor = document.getElementById("catColor");
+  const preview = document.getElementById("colorPreview");
 
   if (catColor && preview) {
 
-    // Startwert anzeigen
     preview.style.background = catColor.value;
 
-
+    catColor.oninput = () => {
+      preview.style.background = catColor.value;
+    };
 
   }
 
