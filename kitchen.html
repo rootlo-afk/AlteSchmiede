@@ -2,23 +2,65 @@
 <html>
 <head>
   <title>Küche</title>
+  <link rel="manifest" href="manifest.json">
+
+<meta name="theme-color" content="#2c3e50">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
   <style>
-    body { font-family: Arial; }
-    .order {
-      padding: 10px;
-      margin: 10px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-    }
-    .offen { background: #eee; }
-    .fertig { background: #2ecc71; color: white; }
-    button {
-      padding: 10px;
-      margin-top: 10px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-  </style>
+body { font-family: Arial; }
+
+.order {
+  border: 1px solid #444;
+  padding: 10px;
+  margin: 10px;
+  border-radius: 10px;
+  position: relative;
+  background: #34495e; /* 🔥 dunkles Grau-Blau */
+}
+
+.order-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 18px;
+  font-weight: bold;
+  padding: 5px 0;
+}
+
+.done-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 6px 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.offen {
+  background: #2be2e2;  /* 🔴 dunkleres Rot */
+  color: rgb(3, 3, 3);
+}
+
+.fertig {
+  background: #27ae60;  /* 🟢 angenehmeres Grün */
+  color: white;
+}
+body {
+  font-family: Arial;
+  background: #ebecee;   /* 🔥 dunkler Hintergrund */
+  color: rgb(27, 26, 26);
+}
+button {
+  padding: 10px;
+  margin-top: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  background: #ecf0f1;
+  border: none;
+  border-radius: 8px;
+}
+</style>
 </head>
 
 <body>
@@ -84,91 +126,100 @@ function startKitchenLive() {
           contentDiv.innerHTML = "";
 
           // ❌ wenn leer → entfernen
-          if (ordersSnap.empty) {
-            tableDiv.remove();
-            delete tableListeners[tableId];
-            return;
-          }
+let hasOpenOrders = false;
 
-          ordersSnap.forEach(orderDoc => {
+ordersSnap.forEach(doc => {
+  let data = doc.data();
+  if (data.status !== "fertig") {
+    hasOpenOrders = true;
+  }
+});
 
-            let data = orderDoc.data();
+if (!hasOpenOrders) {
+  tableDiv.remove();
+  delete tableListeners[tableId];
+  return;
+}
 
-            let orderDiv = document.createElement("div");
-            orderDiv.className = "order";
+ ordersSnap.forEach(orderDoc => {
 
-            if (data.status === "fertig") {
-              orderDiv.classList.add("fertig");
-            }
+  let data = orderDoc.data();
 
-            // 🔥 ITEMS + EXTRAS
-            let itemsHtml = data.items.map(i => {
+  // ❌ fertige direkt überspringen
+  if (data.status === "fertig") return;
 
-              let extras = "";
+  let orderDiv = document.createElement("div");
+  orderDiv.className = "order offen";
 
-              if (i.extras && i.extras.length > 0) {
-                extras = "<br>" + i.extras.map(e => "➕ " + e.name).join("<br>");
-              }
+  // 🔥 ITEMS
+  data.items.forEach(item => {
 
-              return `• ${i.name} x${i.qty}${extras}`;
+    let row = document.createElement("div");
+    row.className = "order-row";
 
-            }).join("<br>");
+    let extras = "";
 
-            orderDiv.innerHTML = itemsHtml;
+    if (item.extras && item.extras.length > 0) {
+      extras = " + " + item.extras.map(e => e.name).join(", ");
+    }
 
-            // 👉 Button
-            if (data.status !== "fertig") {
+    row.innerHTML = `
+      <span>${item.qty}x ${item.name}${extras}</span>
+    `;
 
-              let btn = document.createElement("button");
-              btn.innerText = "✅ Fertig";
+    orderDiv.appendChild(row);
+  });
 
-              btn.onclick = async () => {
+  // 🔥 BUTTON
+  let btn = document.createElement("button");
+  btn.className = "done-btn";
+  btn.innerText = "✅ Fertig";
 
-                // Küche fertig
-                await updateDoc(
-                  doc(
-                    db,
-                    "restaurants",
-                    restaurantId,
-                    "kitchen",
-                    tableId,
-                    "orders",
-                    orderDoc.id
-                  ),
-                  { status: "fertig" }
-                );
-                  await updateDoc(
-                  doc(
-                    db,
-                    "restaurants",
-                    restaurantId,
-                    "kitchen",
-                    tableId
-                  ),
-                  { status: "fertig",updated: Date.now() }
-                );
+  btn.onclick = async () => {
+    await updateDoc(
+      doc(
+        db,
+        "restaurants",
+        restaurantId,
+        "kitchen",
+        tableId,
+        "orders",
+        orderDoc.id
+      ),
+      { status: "fertig" }
+    );
 
-                // 🔥 Service synchronisieren
-                await updateDoc(
-                  doc(
-                    db,
-                    "restaurants",
-                    restaurantId,
-                    "tables",
-                    tableId,
-                    "orders",
-                    orderDoc.id
-                  ),
-                  { status: "fertig" }
-                );
-              };
+    await updateDoc(
+      doc(
+        db,
+        "restaurants",
+        restaurantId,
+        "kitchen",
+        tableId
+      ),
+      { status: "fertig", updated: Date.now() }
+    );
 
-              orderDiv.appendChild(document.createElement("br"));
-              orderDiv.appendChild(btn);
-            }
+    await updateDoc(
+      doc(
+        db,
+        "restaurants",
+        restaurantId,
+        "tables",
+        tableId,
+        "orders",
+        orderDoc.id
+      ),
+      { status: "fertig" }
+    );
+  };
 
-            contentDiv.appendChild(orderDiv);
-          });
+  orderDiv.appendChild(btn);
+
+  // 👉 GANZ WICHTIG: innerhalb der forEach!
+  contentDiv.appendChild(orderDiv);
+
+});
 
         }
       );
@@ -180,6 +231,11 @@ function startKitchenLive() {
 }
 // loadKitchen();
 startKitchenLive();
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js")
+    .then(() => console.log("SW aktiv"))
+    .catch(err => console.log("SW Fehler", err));
+}
 </script>
 
 </body>
