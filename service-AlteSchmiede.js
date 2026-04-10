@@ -124,38 +124,87 @@ async function loadMenu() {
       });
 
     });
+    // 🔥 SORTIEREN
+items.sort((a, b) => {
+
+  let orderA = a.order ?? 999;
+  let orderB = b.order ?? 999;
+
+  // 🔥 zuerst nach ORDER
+  if (orderA !== orderB) {
+    return orderA - orderB;
+  }
+
+  // 🔥 dann alphabetisch innerhalb gleicher Order
+  return a.name.localeCompare(b.name, "de", { sensitivity: "base" });
+
+});
 
     // 🔥 WICHTIG: LEERE KATEGORIE ÜBERSPRINGEN
     if (items.length === 0) continue;
 
     // 👉 ERST JETZT DIV + TITEL
-    let div = document.createElement("div");
-    div.innerHTML = `<h4>${cat.name}</h4>`;
+let container = document.createElement("div");
 
-    // 🔥 BUTTONS
-    items.forEach(item => {
+// 👉 Kategorie
+let title = document.createElement("h4");
+title.innerText = cat.name;
+title.style.textAlign = "left";
+title.style.margin = "15px 0 5px 10px";
 
-      let btn = document.createElement("button");
+container.appendChild(title);
 
-      btn.style.background = "#f8f9fa";
-      btn.style.border = "1px solid #ccc";
-      btn.style.cursor = "pointer";
+// 👉 GRID
+let grid = document.createElement("div");
+grid.style.display = "grid";
+grid.style.gridTemplateColumns = "repeat(auto-fill, 180px)";
+grid.style.gap = "10px";
+grid.style.justifyContent = "center";
 
-      btn.onmouseover = () => btn.style.background = "#dfe6e9";
-      btn.onmouseout = () => btn.style.background = "#f8f9fa";
+container.appendChild(grid);
 
-      btn.innerText = item.name + " (" + Number(item.price).toFixed(2) + "€)";
+// 🔥 BUTTONS
+items.forEach(item => {
 
-      if (cat.name === "Extras") {
-        btn.onclick = () => addExtraToItem(item);
-      } else {
-        btn.onclick = () => addToCart(item);
-      }
+  let btn = document.createElement("button");
 
-      div.appendChild(btn);
-    });
+  btn.style.background = "#f8f9fa";
+  btn.style.border = "1px solid #ccc";
+  btn.style.cursor = "pointer";
 
-    catDiv.appendChild(div);
+  btn.style.width = "180px";
+  btn.style.height = "80px";
+  btn.style.display = "flex";
+  btn.style.flexDirection = "column";
+  btn.style.justifyContent = "center";
+  btn.style.alignItems = "center";
+  btn.style.textAlign = "center";
+  btn.style.whiteSpace = "normal";
+  btn.style.wordBreak = "break-word";
+
+  btn.onmouseover = () => btn.style.background = "#dfe6e9";
+  btn.onmouseout = () => btn.style.background = "#f8f9fa";
+
+  btn.innerHTML = `
+    <div style="font-size:13px;">
+      ${item.name}
+    </div>
+    <div style="font-size:12px; margin-top:4px;">
+      ${Number(item.price).toFixed(2)}€
+    </div>
+  `;
+
+  if (cat.name === "Extras") {
+    btn.onclick = () => addExtraToItem(item);
+  } else {
+    btn.onclick = () => addToCart(item);
+  }
+
+  grid.appendChild(btn);
+});
+
+// 👉 richtig!
+catDiv.appendChild(container);
   }
 }
 
