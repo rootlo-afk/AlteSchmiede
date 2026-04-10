@@ -149,7 +149,7 @@ let container = document.createElement("div");
 // 👉 Kategorie
 let title = document.createElement("h4");
 title.innerText = cat.name;
-title.style.textAlign = "left";
+title.style.textAlign = "center";
 title.style.margin = "15px 0 5px 10px";
 
 container.appendChild(title);
