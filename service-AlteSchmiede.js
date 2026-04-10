@@ -453,68 +453,29 @@ async function loadFullPayment(tableId) {
 
   // 👉 UI
   let row = document.createElement("div");
-  row.style.display = "flex";
-row.style.justifyContent = "space-between";
-row.style.alignItems = "center";
-row.style.gap = "10px";
 
-// 🔥 NEU (RAHMEN)
-row.style.border = "1px solid #ddd";
-row.style.borderRadius = "8px";
-row.style.padding = "8px 10px";
-row.style.margin = "6px 0";
-row.style.background = "#fff";
-row.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
-row.onmouseover = () => row.style.background = "#f9f9f9";
-row.onmouseout = () => row.style.background = "#fff";
+row.innerHTML = `
+  <div class="pay-row">
+    <span class="pay-name">
+      ${item.name}${extrasText}
+    </span>
 
-  row.style.display = "flex";
-  row.style.justifyContent = "center";
-  row.style.alignItems = "center";
-  row.style.gap = "20px";
-  row.style.margin = "5px 0";
-
-  let name = document.createElement("span");
-  // name.innerText = `${item.name}${extrasText} (${itemPrice.toFixed(2)}€)`;
-  name.innerHTML = `
-  <div style="
-    display:flex;
-    justify-content: space-between;
-    align-items:center;
-    font-weight:bold;
-    width: 380px;
-  ">
-    <span>${item.name}</span>
-    <span style="
-      margin-left:20px;
-      min-width:60px;
-      text-align:right;
-    ">
+    <span class="pay-price">
       ${itemPrice.toFixed(2)}€
     </span>
-  </div>
 
-  <div style="
-    font-size:11px;
-    margin-top:2px;
-    text-align:left;
-  ">
-    ${extrasText}
+    <button class="pay-remove">❌</button>
   </div>
 `;
 
-  let btn = document.createElement("button");
-  btn.innerText = "❌";
+// 🔥 REMOVE BUTTON
+row.querySelector(".pay-remove").onclick = () => {
+  paymentList = paymentList.filter(p => p.id !== entry.id);
+  row.remove();
+  updateSelectedTotal();
+};
 
-  btn.onclick = () => {
-    paymentList = paymentList.filter(p => p.id !== entry.id);
-    row.remove();
-    updateSelectedTotal();
-  };
-
-  row.appendChild(name);
-  row.appendChild(btn);
-  div.appendChild(row);
+div.appendChild(row);
 }
     });
 
@@ -746,11 +707,14 @@ async function openTableDetails(tableId) {
 
 
         let btn = document.createElement("button");
-        btn.style.display = "block";
-        btn.style.width = "480px";
-        btn.style.maxWidth = "480px";
-        btn.style.margin = "4px auto";
-        btn.style.padding = "6px 10px";
+btn.style.display = "block";
+btn.style.width = "100%";
+btn.style.maxWidth = "500px";
+btn.style.margin = "6px auto";
+btn.style.padding = "10px";
+btn.style.borderRadius = "10px";
+btn.style.border = "1px solid #ddd";
+btn.style.background = "#fff";
 
         let extrasText = "";
 
@@ -765,24 +729,12 @@ async function openTableDetails(tableId) {
         extras: item.extras || []
 });
 btn.innerHTML = `
-  <div style="
-  display:flex;
-  justify-content: space-between;
-  align-items:center;
-  font-weight:bold;
-  line-height: 1.2;
-  ">
+  <div style="display:flex; justify-content:space-between; font-weight:bold;">
     <span>${item.name}</span>
-    <span style="margin-left:15px;">
-      ${displayPrice.toFixed(2)}€
-    </span>
+    <span>${displayPrice.toFixed(2)}€</span>
   </div>
 
-  <div style="
-    font-size:11px;
-    text-align:left;
-    margin-top:1px;
-  ">
+  <div style="font-size:11px; text-align:left;">
     ${extrasText}
   </div>
 `;
