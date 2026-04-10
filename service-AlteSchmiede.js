@@ -281,7 +281,34 @@ div.innerHTML = `
 
   totalDiv.innerText = "Neue Bestellung: " + total.toFixed(2) + "€";
 }
+window.toggleSales = function() {
 
+  const box = document.getElementById("salesBox");
+  const btn = document.getElementById("salesToggleBtn");
+
+  // 👉 aktuell versteckt
+  if (box.style.display === "none") {
+
+    let pw = prompt("Passwort eingeben:");
+
+    if (pw === "2903") {
+
+      box.style.display = "block";
+      btn.innerText = "🔓 Umsatz ausblenden";
+
+    } else {
+      alert("Falsches Passwort!");
+    }
+
+  } else {
+
+    // 👉 wieder ausblenden
+    box.style.display = "none";
+    btn.innerText = "🔒 Umsatz anzeigen";
+
+  }
+
+};
 
 // 👉 wichtig für Buttons
 window.changeQty = function(id, delta) {
@@ -661,19 +688,8 @@ document.addEventListener("DOMContentLoaded", () => {
   renderTables();
   loadSales();
 
-  // 🔥 STATUS FUNKTION
-  function updateConnectionStatus() {
-    const el = document.getElementById("connectionStatus");
-    if (!el) return;
+  
 
-    if (navigator.onLine) {
-      el.innerText = "🟢 Online";
-      el.style.background = "green";
-    } else {
-      el.innerText = "🔴 Offline";
-      el.style.background = "red";
-    }
-  }
 
   // 🔥 Events
   window.addEventListener("online", updateConnectionStatus);
@@ -1116,6 +1132,29 @@ function getTableIcons(barOpen, kitchenOpen) {
 function calculateTotal(items) {
   return items.reduce((sum, i) => sum + calculateItemTotal(i), 0);
 }
+
+window.unlockSales = function() {
+
+  let pw = prompt("Passwort eingeben:");
+
+  if (pw === "1234") {   // 🔥 DEIN PASSWORT
+    document.getElementById("salesBox").style.display = "block";
+  } else {
+    alert("Falsches Passwort!");
+  }
+
+};
+// 🔥 STATUS FUNKTION
+function updateConnectionStatus() {
+  const el = document.getElementById("connectionStatus");
+
+  if (navigator.onLine) {
+    el.style.background = "green";
+  } else {
+    el.style.background = "red";
+  }
+}
+
 // Funktionen global machen (für Buttons)
 window.confirmPayment = confirmPayment;
 window.renderTables = renderTables;
