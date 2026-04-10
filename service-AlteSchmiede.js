@@ -15,7 +15,14 @@ import {
   onSnapshot     // 🔥 NEU
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-
+const categoryColors = {
+  "Getränke": "#056bd1",
+  "Salate": "#2ecc71",
+  "kleine Snacks": "#f39c12",
+  "Hauptgerichte": "#e74c3c",
+  "Extras": "#95a5a6",
+  "Dessert": "#9b59b6"
+};
 
 
 
@@ -168,8 +175,12 @@ items.forEach(item => {
 
   let btn = document.createElement("button");
 
-  btn.style.background = "#f8f9fa";
-  btn.style.border = "1px solid #ccc";
+  let color = categoryColors[cat.name] || "#bdc3c7";
+
+btn.style.background = cat.color || "#f8f9fa";
+btn.style.color = "white";
+btn.style.border = "none";
+  // btn.style.border = "1px solid #ccc";
   btn.style.cursor = "pointer";
 
   btn.style.width = "180px";
@@ -181,9 +192,9 @@ items.forEach(item => {
   btn.style.textAlign = "center";
   btn.style.whiteSpace = "normal";
   btn.style.wordBreak = "break-word";
-
-  btn.onmouseover = () => btn.style.background = "#dfe6e9";
-  btn.onmouseout = () => btn.style.background = "#f8f9fa";
+  btn.style.color = getTextColor(cat.color);
+btn.onmouseover = () => btn.style.opacity = "0.8";
+btn.onmouseout = () => btn.style.opacity = "1";
 
   btn.innerHTML = `
     <div style="font-size:13px;">
@@ -206,6 +217,7 @@ items.forEach(item => {
 // 👉 richtig!
 catDiv.appendChild(container);
   }
+  
 }
 
 function addToCart(item) {
@@ -267,8 +279,22 @@ function renderCart() {
     total += itemTotal * item.qty;
 
 div.innerHTML = `
-  <div style="margin-bottom:10px;font-weight:bold;">
-    ${item.name} x${item.qty} (${itemTotal.toFixed(2)}€)
+  <div style="
+    text-align:center;
+    font-weight:bold;
+    margin-bottom:5px;
+  ">
+    ${item.qty}x ${item.name}
+    <span style="margin-left:10px;">
+      ${(itemTotal * item.qty).toFixed(2)}€
+    </span>
+  </div>
+
+  <div style="
+    font-size:12px;
+    text-align:center;
+    margin-bottom:5px;
+  ">
     ${extrasText}
   </div>
 
@@ -765,7 +791,7 @@ let entry = {
 
           if (index !== -1) {
             paymentList.splice(index, 1);
-            btn.style.background = "";
+            btn.style.background = "#ffffff";
             btn.style.color = "black";
           } else {
             paymentList.push(entry);
@@ -1106,7 +1132,17 @@ function updateConnectionStatus() {
     el.style.background = "red";
   }
 }
+function getTextColor(bgColor) {
+  let c = bgColor.substring(1); // # entfernen
+  let rgb = parseInt(c, 16);
+  let r = (rgb >> 16) & 0xff;
+  let g = (rgb >> 8) & 0xff;
+  let b = (rgb >> 0) & 0xff;
 
+  let brightness = (r * 299 + g * 587 + b * 114) / 1000;
+
+  return brightness > 150 ? "black" : "white";
+}
 // Funktionen global machen (für Buttons)
 window.confirmPayment = confirmPayment;
 window.renderTables = renderTables;
