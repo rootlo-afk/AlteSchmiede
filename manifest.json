@@ -1,7 +1,7 @@
 {
   "name": "Alte Schmiede",
   "short_name": "Service",
-  "start_url": "./service-AlteSchmiede.html",
+  "start_url": "/AlteSchmiede/service-AlteSchmiede.html",
   "id": "/AlteSchmiede/",
   "display": "standalone",
   "background_color": "#2c3e50",
