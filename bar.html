@@ -5,11 +5,12 @@
   <style>
     body { font-family: Arial; }
     .order {
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin: 10px;
-      border-radius: 10px;
-    }
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin: 10px;
+  border-radius: 10px;
+  position: relative; /* 🔥 WICHTIG */
+}
     .fertig {
       background: #2ecc71;
       color: white;
@@ -19,6 +20,30 @@
       margin-top: 10px;
       cursor: pointer;
     }
+
+    .order-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 18px;
+  font-weight: bold;
+  padding: 5px 0;
+}
+
+.order-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.done-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 6px 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
   </style>
 </head>
 
@@ -69,7 +94,11 @@ function startBarLive() {
 
       let tableDiv = document.createElement("div");
       tableDiv.id = "table_" + tableId;
-      tableDiv.innerHTML = `<h2>🪑 Tisch ${tableId}</h2>`;
+      tableDiv.innerHTML = `
+  <h2 style="margin-left:15px;">
+    🪑 Tisch ${tableId}
+  </h2>
+`;
 
       let contentDiv = document.createElement("div");
       tableDiv.appendChild(contentDiv);
@@ -94,64 +123,86 @@ function startBarLive() {
 
             let orderDiv = document.createElement("div");
             orderDiv.className = "order";
+            
 
             if (data.status === "fertig") {
               orderDiv.classList.add("fertig");
             }
 
-            let items = data.items
-              .map(i => `• ${i.name} x${i.qty}`)
-              .join("<br>");
+orderDiv.innerHTML = "";
 
-            orderDiv.innerHTML = items;
+// 🔥 jede Position einzeln sauber darstellen
+data.items.forEach(item => {
+
+  let row = document.createElement("div");
+  row.className = "order-row";
+
+  row.innerHTML = `
+    <span class="order-text">
+      ${item.qty}x ${item.name}
+    </span>
+  `;
+
+  orderDiv.appendChild(row);
+});
 
             if (data.status !== "fertig") {
 
-              let btn = document.createElement("button");
-              btn.innerText = "✅ Fertig";
+let btn = document.createElement("button");
+btn.className = "done-btn";
+btn.innerText = "✅ Fertig";
 
 btn.onclick = async () => {
 
-                // Küche fertig
-                await updateDoc(
-                  doc(
-                    db,
-                    "restaurants",
-                    restaurantId,
-                    "bar",
-                    tableId,
-                    "orders",
-                    orderDoc.id
-                  ),
-                  { status: "fertig" }
-                );
-                 await updateDoc(
-                  doc(
-                    db,
-                    "restaurants",
-                    restaurantId,
-                    "bar",
-                    tableId
-                  ),
-                  { status: "fertig",updated: Date.now()}
-                );
-                // 🔥 Service synchronisieren
-                await updateDoc(
-                  doc(
-                    db,
-                    "restaurants",
-                    restaurantId,
-                    "tables",
-                    tableId,
-                    "orders",
-                    orderDoc.id
-                  ),
-                  { status: "fertig" }
-                );
-              };
+  // Theke fertig
+  await updateDoc(
+    doc(
+      db,
+      "restaurants",
+      restaurantId,
+      "bar",
+      tableId,
+      "orders",
+      orderDoc.id
+    ),
+    { status: "fertig" }
+  );
 
-              orderDiv.appendChild(document.createElement("br"));
-              orderDiv.appendChild(btn);
+  // Tisch aktualisieren
+  await updateDoc(
+    doc(
+      db,
+      "restaurants",
+      restaurantId,
+      "bar",
+      tableId
+    ),
+    { status: "fertig", updated: Date.now() }
+  );
+
+  // Service synchronisieren
+  await updateDoc(
+    doc(
+      db,
+      "restaurants",
+      restaurantId,
+      "tables",
+      tableId,
+      "orders",
+      orderDoc.id
+    ),
+    { status: "fertig" }
+  );
+};
+
+// 👉 ERST JETZT anhängen
+orderDiv.appendChild(btn);
+
+let footer = document.createElement("div");
+footer.className = "order-footer";
+
+footer.appendChild(btn);
+orderDiv.appendChild(footer);
             }
 
             contentDiv.appendChild(orderDiv);
