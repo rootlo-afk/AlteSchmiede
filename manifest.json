@@ -2,6 +2,7 @@
   "name": "Alte Schmiede",
   "short_name": "Service",
   "start_url": "./service-AlteSchmiede.html",
+  "id": "/AlteSchmiede/"
   "display": "standalone",
   "background_color": "#2c3e50",
   "theme_color": "#2c3e50",
