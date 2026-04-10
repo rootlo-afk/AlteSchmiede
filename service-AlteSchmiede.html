@@ -26,8 +26,43 @@
   }
 
 }
+#connectionStatus {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: green;
+}
 
+.right {
+  position: relative;
+}
 
+/* Container unten */
+.payment-bottom {
+  position: relative;
+  margin-top: 20px;
+}
+
+/* Button mittig & halb breit */
+.pay-btn {
+  display: block;
+  width: 50%;
+  margin: 0 auto;
+  padding: 12px;
+  font-size: 16px;
+}
+
+/* 🔥 JETZT WIRKLICH RECHTS IM ECK */
+.footer-credit {
+  position: absolute;
+  right: 10px;
+  bottom: 0;
+  font-size: 10px;
+  color: #999;
+}
   </style>
 </head>
 
@@ -47,19 +82,7 @@
 
 <hr>
 
-<div id="connectionStatus" style="
-  position: fixed;
-  top: 10px;
-  right: 10px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  color: white;
-  font-weight: bold;
-  background: green;
-  z-index: 999;
-">
-  🟢 Online
-</div>
+<div id="connectionStatus"></div>
 <div class="container">
 
   <!-- LINKS -->
@@ -95,9 +118,19 @@
 <div class="right">
 
   <div style="text-align:right; font-size:12px;">
+
+  <!-- 🔥 UMSATZ -->
+  <div id="salesBox" style="display:none;">
     📅 Heute: <span id="salesToday">0€</span><br>
     📆 Monat: <span id="salesMonth">0€</span>
   </div>
+
+  <!-- 🔥 BUTTON DIREKT DARUNTER -->
+  <button id="salesToggleBtn" onclick="toggleSales()" style="margin-top:5px; font-size:12px;">
+    🔒 Umsatz anzeigen
+  </button>
+
+</div>
 
   <h2>💳 Zahlung</h2>
 
@@ -106,7 +139,9 @@
   <h3 id="payTotal">0€</h3>
 
   <button onclick="confirmPayment()">✅ Bezahlen</button>
-
+<div class="footer-credit">
+  designed by rootlo
+</div>
 </div>
 
 </div>
