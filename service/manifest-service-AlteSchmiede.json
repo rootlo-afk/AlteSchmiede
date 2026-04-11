@@ -2,7 +2,7 @@
   "name": "Service",
   "short_name": "Service",
   "id": "/AlteSchmiede/service",
-  "start_url": "/AlteSchmiede/service/",
+  "start_url": "./index.html",
   "scope": "/AlteSchmiede/service/",
   "display": "standalone",
   "background_color": "#3498db",
