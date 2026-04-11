@@ -1,10 +1,13 @@
 {
   "name": "Theke",
   "short_name": "Theke",
-  "start_url": "./bar.html",
+      "id": "/AlteSchmiede/bar/",
+  "start_url": "./index.html",
+      "scope": "./",
   "display": "standalone",
   "background_color": "#27ae60",
-  "theme_color": "#27ae60",
+  "theme_color": "#3498db",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "icon-service-192.png",
