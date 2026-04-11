@@ -1,0 +1,15 @@
+{
+  "name": "Küche",
+  "short_name": "Küche",
+  "start_url": "./kitchen-AlteSchmiede.html",
+  "display": "standalone",
+  "background_color": "#e67e22",
+  "theme_color": "#e67e22",
+  "icons": [
+    {
+      "src": "icon-kitchen-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

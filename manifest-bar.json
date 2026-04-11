@@ -1,0 +1,15 @@
+{
+  "name": "Theke",
+  "short_name": "Theke",
+  "start_url": "./bar.html",
+  "display": "standalone",
+  "background_color": "#27ae60",
+  "theme_color": "#27ae60",
+  "icons": [
+    {
+      "src": "icon-bar-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

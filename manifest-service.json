@@ -1,0 +1,15 @@
+{
+  "name": "Service",
+  "short_name": "Service",
+  "start_url": "./service-AlteSchmiede.html",
+  "display": "standalone",
+  "background_color": "#3498db",
+  "theme_color": "#3498db",
+  "icons": [
+    {
+      "src": "icon-service-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
