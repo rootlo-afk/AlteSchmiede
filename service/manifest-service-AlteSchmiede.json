@@ -1,7 +1,7 @@
 {
   "name": "Service",
   "short_name": "Service",
-  "id": "/AlteSchmiede/service",
+  "id": "/AlteSchmiede/service/service",
   "start_url": "./service-AlteSchmiede.html",
   "scope": "./",
   "display": "standalone",
