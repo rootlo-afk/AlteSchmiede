@@ -1,11 +1,11 @@
 {
   "name": "Küche",
   "short_name": "Küche",
+    "id": "/AlteSchmiede/kitchen",
   "start_url": "./kitchen-AlteSchmiede.html",
   "display": "standalone",
   "background_color": "#e67e22",
   "theme_color": "#e67e22",
-  "id": "/AlteSchmiede/kitchen"
    "icons": [
     {
       "src": "icon-kitchen-192.png",
