@@ -2,7 +2,7 @@
   "name": "Küche",
   "short_name": "Küche",
     "id": "/AlteSchmiede/kitchen",
-  "start_url": "./kitchen-AlteSchmiede.html",
+  "start_url": "./kitchen.html",
   "display": "standalone",
   "background_color": "#e67e22",
   "theme_color": "#e67e22",
