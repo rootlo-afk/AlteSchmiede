@@ -205,3 +205,4 @@ window.addEventListener("appinstalled", () => {
   installBtn.style.display = "none";
 });
 </script>
+<script type="module" src="kitchen.js"></script>
