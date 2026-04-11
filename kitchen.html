@@ -93,11 +93,11 @@ button {
 <body>
 
 <h1>👨‍🍳 Küche</h1>
-
-<div id="orders"></div>
 <button id="installBtn" style="display:none; margin-bottom:10px;">
   📲 App installieren
 </button>
+<div id="orders"></div>
+
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -263,14 +263,14 @@ if (!hasOpenOrders) {
 startKitchenLive();
 
 </script>
-<script type="module" src="service-AlteSchmiede.js"></script>
+
 
 <script>
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js");
 }
 </script>
-<script type="module" src="service-AlteSchmiede.js"></script>
+
 
 <script>
 let deferredPrompt;
