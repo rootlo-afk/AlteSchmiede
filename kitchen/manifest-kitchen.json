@@ -1,7 +1,8 @@
 {
   "name": "Küche",
   "short_name": "Küche",
-  "start_url": "./kitchen-AlteSchmiede.html",
+    "id": "/AlteSchmiede/kitchen/",
+  "start_url": "./index.html",
     "scope": "./",
   "display": "standalone",
   "background_color": "#3498db",
@@ -9,14 +10,16 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "icon-service-192.png",
+      "src": "icon-kitchen-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "icon-service-512.png",
+      "src": "icon-kitchen-512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
   ]
 }
+
+
