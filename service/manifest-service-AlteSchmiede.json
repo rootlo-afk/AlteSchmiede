@@ -1,9 +1,9 @@
 {
   "name": "Service",
   "short_name": "Service",
-  "id": "/AlteSchmiede/service",
+  "id": "/AlteSchmiede/service/",
   "start_url": "./index.html",
-  "scope": "/AlteSchmiede/service/",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#3498db",
   "theme_color": "#3498db",
