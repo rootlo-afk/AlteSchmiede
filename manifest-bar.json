@@ -1,6 +1,7 @@
 {
   "name": "Theke",
   "short_name": "Theke",
+  "id": "/AlteSchmiede/bar",
   "start_url": "./bar.html",
   "display": "standalone",
   "background_color": "#27ae60",
