@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Küche</title>
+  <link rel="manifest" href="manifest-kitchen.json">
+
+<meta name="theme-color" content="#2c3e50">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <style>
+body { font-family: Arial; }
+
+.order {
+  border: 1px solid #444;
+  padding: 10px;
+  margin: 10px;
+  border-radius: 10px;
+  position: relative;
+  background: #34495e; /* 🔥 dunkles Grau-Blau */
+}
+
+.order-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 18px;
+  font-weight: bold;
+  padding: 5px 0;
+}
+
+.done-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 6px 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.offen {
+  background: #2be2e2;  /* 🔴 dunkleres Rot */
+  color: rgb(3, 3, 3);
+}
+
+.fertig {
+  background: #27ae60;  /* 🟢 angenehmeres Grün */
+  color: white;
+}
+body {
+  font-family: Arial;
+  background: #ebecee;   /* 🔥 dunkler Hintergrund */
+  color: rgb(27, 26, 26);
+}
+button {
+  padding: 10px;
+  margin-top: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  background: #ecf0f1;
+  border: none;
+  border-radius: 8px;
+}
+    @media (max-width: 768px) {
+
+  .container {
+    display: block !important;
+  }
+
+  .left, .right {
+    width: 100% !important;
+  }
+
+  .right {
+  width: 30%;
+  padding: 10px;
+  background: #16e7c4;  /* 🔥 dunkles Panel */
+  border-radius: 10px;
+}
+#installBtn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #2ecc71;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+}
+}
+</style>
+</head>
+
+<body>
+
+<h1>👨‍🍳 Küche</h1>
+<button id="installBtn" style="display:none; margin-bottom:10px;">
+  📲 App installieren
+</button>
+<div id="orders"></div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+
+import {
+  getFirestore,
+  collection,
+  doc,
+  updateDoc,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// 🔥 Firebase Config
+const firebaseConfig = {
+  apiKey: "AIzaSyBFJ6n7f3U3qpfezvqTgx9vugOpMSp284o",
+  authDomain: "oberkellner-app.firebaseapp.com",
+  projectId: "oberkellner-app"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const restaurantId = "AlteSchmiede";
+const ordersDiv = document.getElementById("orders");
+
+
+const tableListeners = {};
+
+function startKitchenLive() {
+
+  const kitchenRef = collection(db, "restaurants", restaurantId, "kitchen");
+
+  onSnapshot(kitchenRef, (tablesSnap) => {
+
+    tablesSnap.forEach(tableDoc => {
+
+      const tableId = tableDoc.id;
+
+      // 👉 verhindert doppelte Listener
+      if (tableListeners[tableId]) return;
+
+      let tableDiv = document.createElement("div");
+      tableDiv.id = "table_" + tableId;
+      tableDiv.innerHTML = `<h2>🪑 Tisch ${tableId}</h2>`;
+
+      let contentDiv = document.createElement("div");
+      tableDiv.appendChild(contentDiv);
+
+      ordersDiv.appendChild(tableDiv);
+
+      // 🔥 LIVE ORDERS
+      const unsub = onSnapshot(
+        collection(db, "restaurants", restaurantId, "kitchen", tableId, "orders"),
+        (ordersSnap) => {
+
+          contentDiv.innerHTML = "";
+
+          // ❌ wenn leer → entfernen
+let hasOpenOrders = false;
+
+ordersSnap.forEach(doc => {
+  let data = doc.data();
+  if (data.status !== "fertig") {
+    hasOpenOrders = true;
+  }
+});
+
+if (!hasOpenOrders) {
+  tableDiv.remove();
+  delete tableListeners[tableId];
+  return;
+}
+
+ ordersSnap.forEach(orderDoc => {
+
+  let data = orderDoc.data();
+
+  // ❌ fertige direkt überspringen
+  if (data.status === "fertig") return;
+
+  let orderDiv = document.createElement("div");
+  orderDiv.className = "order offen";
+
+  // 🔥 ITEMS
+  data.items.forEach(item => {
+
+    let row = document.createElement("div");
+    row.className = "order-row";
+
+    let extras = "";
+
+    if (item.extras && item.extras.length > 0) {
+      extras = " + " + item.extras.map(e => e.name).join(", ");
+    }
+
+    row.innerHTML = `
+      <span>${item.qty}x ${item.name}${extras}</span>
+    `;
+
+    orderDiv.appendChild(row);
+  });
+
+  // 🔥 BUTTON
+  let btn = document.createElement("button");
+  btn.className = "done-btn";
+  btn.innerText = "✅ Fertig";
+
+  btn.onclick = async () => {
+    await updateDoc(
+      doc(
+        db,
+        "restaurants",
+        restaurantId,
+        "kitchen",
+        tableId,
+        "orders",
+        orderDoc.id
+      ),
+      { status: "fertig" }
+    );
+
+    await updateDoc(
+      doc(
+        db,
+        "restaurants",
+        restaurantId,
+        "kitchen",
+        tableId
+      ),
+      { status: "fertig", updated: Date.now() }
+    );
+
+    await updateDoc(
+      doc(
+        db,
+        "restaurants",
+        restaurantId,
+        "tables",
+        tableId,
+        "orders",
+        orderDoc.id
+      ),
+      { status: "fertig" }
+    );
+  };
+
+  orderDiv.appendChild(btn);
+
+  // 👉 GANZ WICHTIG: innerhalb der forEach!
+  contentDiv.appendChild(orderDiv);
+
+});
+
+        }
+      );
+
+      tableListeners[tableId] = unsub;
+    });
+
+  });
+}
+// loadKitchen();
+startKitchenLive();
+
+</script>
+
+
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js");
+}
+</script>
+
+
+<script>
+let deferredPrompt;
+
+const installBtn = document.getElementById("installBtn");
+
+// Event abfangen
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+
+  installBtn.style.display = "block";
+});
+
+// Klick
+installBtn.addEventListener("click", async () => {
+  if (!deferredPrompt) return;
+
+  deferredPrompt.prompt();
+
+  const { outcome } = await deferredPrompt.userChoice;
+
+  if (outcome === "accepted") {
+    console.log("Installiert ✅");
+  }
+
+  installBtn.style.display = "none";
+});
+
+// Wenn schon installiert → verstecken
+window.addEventListener("appinstalled", () => {
+  installBtn.style.display = "none";
+});
+</script>
+
+</body>
+</html>
