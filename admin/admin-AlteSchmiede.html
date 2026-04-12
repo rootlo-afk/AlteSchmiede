@@ -74,9 +74,13 @@ const restaurantId = "AlteSchmiede";
 const menuDiv = document.getElementById("menuList");
 
 
-
+let isLoading = false;
 // 🔥 Menü laden
 async function loadMenu() {
+
+  // 🔒 SCHUTZ
+  if (isLoading) return;
+  isLoading = true;
 
   menuDiv.innerHTML = "";
 
@@ -135,7 +139,7 @@ catTitle.onclick = () => {
   picker.type = "color";
   picker.value = cat.color || "#3498db";
 
-  picker.oninput = async () => {
+  picker.onchange = async () => {
 
     await updateDoc(
       doc(db, "restaurants", restaurantId, "kategorien", cat.id),
@@ -246,8 +250,11 @@ div.innerHTML = `
       menuDiv.appendChild(div);
     });
   }
+   isLoading = false;
 }
 
+
+  
 window.addCategory = async function() {
 
   const nameInput = document.getElementById("catName");
