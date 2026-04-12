@@ -6,8 +6,7 @@ import {
   addDoc, 
   deleteDoc, 
   doc, 
-  updateDoc,
-  setDoc 
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -25,6 +24,42 @@ const menuDiv = document.getElementById("menuList");
 
 let isLoading = false;
 
+// 🔥 ICONS
+function getCategoryIcon(name) {
+  switch (name) {
+    case "Getränke": return "🍺";
+    case "Salate": return "🥗";
+    case "Hauptgerichte": return "🍽️";
+    case "Extras": return "➕";
+    case "Dessert": return "🍰";
+    default: return "📦";
+  }
+}
+
+// 🔥 DROPDOWN
+async function loadCategoriesDropdown() {
+
+  const select = document.getElementById("category");
+  if (!select) return;
+
+  select.innerHTML = "";
+
+  const snap = await getDocs(
+    collection(db, "restaurants", restaurantId, "kategorien")
+  );
+
+  snap.forEach(docSnap => {
+    let data = docSnap.data();
+
+    let option = document.createElement("option");
+    option.value = docSnap.id;
+    option.text = getCategoryIcon(data.name) + " " + data.name;
+
+    select.appendChild(option);
+  });
+}
+
+// 🔥 MENU
 async function loadMenu() {
 
   if (isLoading) return;
@@ -36,23 +71,14 @@ async function loadMenu() {
     collection(db, "restaurants", restaurantId, "kategorien")
   );
 
-  let categories = [];
+  for (const catDoc of catSnap.docs) {
 
-  catSnap.forEach(docSnap => {
-    categories.push({
-      id: docSnap.id,
-      ...docSnap.data()
-    });
-  });
+    const cat = {
+      id: catDoc.id,
+      ...catDoc.data()
+    };
 
-  const order = ["Getränke", "Salate", "Hauptgerichte", "Extras", "Dessert"];
-
-  categories.sort((a, b) => {
-    return order.indexOf(a.name) - order.indexOf(b.name);
-  });
-
-  for (const cat of categories) {
-
+    // 🔹 Titel
     let catTitle = document.createElement("div");
 
     catTitle.style.display = "flex";
@@ -60,24 +86,18 @@ async function loadMenu() {
     catTitle.style.justifyContent = "center";
     catTitle.style.gap = "10px";
     catTitle.style.marginTop = "20px";
-
-    let colorBox = document.createElement("div");
-    colorBox.style.width = "15px";
-    colorBox.style.height = "15px";
-    colorBox.style.borderRadius = "4px";
-    colorBox.style.background = cat.color || "#ccc";
-
-    let titleText = document.createElement("span");
-    titleText.innerText = getCategoryIcon(cat.name) + " " + cat.name;
-    titleText.style.fontWeight = "bold";
-
-    catTitle.appendChild(colorBox);
-    catTitle.appendChild(titleText);
     catTitle.style.background = cat.color || "#eee";
     catTitle.style.padding = "5px 10px";
     catTitle.style.borderRadius = "8px";
     catTitle.style.cursor = "pointer";
 
+    let titleText = document.createElement("span");
+    titleText.innerText = getCategoryIcon(cat.name) + " " + cat.name;
+    titleText.style.fontWeight = "bold";
+
+    catTitle.appendChild(titleText);
+
+    // 🔥 Farbe ändern
     catTitle.onclick = () => {
       let picker = document.createElement("input");
       picker.type = "color";
@@ -96,91 +116,69 @@ async function loadMenu() {
 
     menuDiv.appendChild(catTitle);
 
+    // 🔹 Produkte
     const prodSnap = await getDocs(
       collection(db, "restaurants", restaurantId, "kategorien", cat.id, "produkte")
     );
 
-    let items = [];
-
     prodSnap.forEach(p => {
-      items.push({
+
+      const item = {
         id: p.id,
         ...p.data()
-      });
-    });
-
-    items.sort((a, b) => {
-      let orderA = a.order ?? 999;
-      let orderB = b.order ?? 999;
-
-      if (orderA !== orderB) return orderA - orderB;
-
-      return a.name.localeCompare(b.name, "de", { sensitivity: "base" });
-    });
-
-    items.forEach(item => {
+      };
 
       let div = document.createElement("div");
       div.className = "item";
 
       div.innerHTML = `
-  <div style="
-    display:flex;
-    justify-content: space-between;
-    align-items:center;
-    border:1px solid #ddd;
-    border-radius:8px;
-    padding:8px 10px;
-    margin:6px 0;
-    background:#fff;
-    ${item.active === false ? "opacity:0.4;" : ""}
-  ">
+        <div style="
+          display:flex;
+          justify-content: space-between;
+          align-items:center;
+          border:1px solid #ddd;
+          border-radius:8px;
+          padding:8px 10px;
+          margin:6px 0;
+          background:#fff;
+          ${item.active === false ? "opacity:0.4;" : ""}
+        ">
 
-    <!-- NAME + PREIS -->
-    <div style="
-      display:flex;
-      justify-content: space-between;
-      align-items:center;
-      flex:1;
-      font-weight:bold;
-      gap:15px;
-    ">
+          <div style="
+            display:flex;
+            justify-content: space-between;
+            align-items:center;
+            flex:1;
+            font-weight:bold;
+            gap:15px;
+          ">
 
-      <div style="display:flex; align-items:center; gap:10px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <input 
+                type="number" 
+                value="${item.order ?? 0}" 
+                style="width:60px;"
+                onchange="updateOrder('${cat.id}', '${item.id}', this.value)"
+              >
+              <span>${item.name}</span>
+            </div>
 
-        <!-- ORDER -->
-        <input 
-          type="number" 
-          value="${item.order ?? 0}" 
-          style="width:60px;"
-          onchange="updateOrder('${cat.id}', '${item.id}', this.value)"
-        >
+            <span style="min-width:70px; text-align:right;">
+              ${item.price.toFixed(2)}€
+            </span>
 
-        <!-- NAME -->
-        <span>${item.name}</span>
+          </div>
 
-      </div>
+          <div style="display:flex; gap:6px; margin-left:10px;">
+            <button onclick="editItem('${cat.id}', '${item.id}', '${item.name}', ${item.price})">✏️</button>
+            <button onclick="deleteItem('${cat.id}', '${item.id}')">❌</button>
+            <button onclick="toggleActive('${cat.id}', '${item.id}', ${item.active !== false})">
+              ${item.active === false ? "👁️‍🗨️" : "🚫"}
+            </button>
+          </div>
 
-      <span style="
-        min-width:70px;
-        text-align:right;
-      ">
-        ${item.price.toFixed(2)}€
-      </span>
-
-    </div>
-
-    <!-- BUTTONS -->
-    <div style="display:flex; gap:6px; margin-left:10px;">
-      <button onclick="editItem('${cat.id}', '${item.id}', '${item.name}', ${item.price})">✏️</button>
-      <button onclick="deleteItem('${cat.id}', '${item.id}')">❌</button>
-      <button onclick="toggleActive('${cat.id}', '${item.id}', ${item.active !== false})">
-        ${item.active === false ? "👁️‍🗨️" : "🚫"}
-      </button>
-    </div>
-
-  </div>
-`;
+        </div>
+      `;
 
       menuDiv.appendChild(div);
     });
@@ -188,55 +186,50 @@ async function loadMenu() {
 
   isLoading = false;
 }
-function getCategoryIcon(name) {
-  switch (name) {
-    case "Getränke": return "🍺";
-    case "Salate": return "🥗";
-    case "Hauptgerichte": return "🍽️";
-    case "Extras": return "➕";
-    case "Dessert": return "🍰";
-    default: return "📦";
-  }
-}
-async function loadCategoriesDropdown() {
 
-  const select = document.getElementById("category");
-  if (!select) return; // 🔥 wichtig!
+// 🔥 GLOBAL (WICHTIG!)
+window.addCategory = async function() {
 
-  select.innerHTML = "";
+  const name = document.getElementById("catName").value;
 
-  const snap = await getDocs(
-    collection(db, "restaurants", restaurantId, "kategorien")
+  if (!name) return;
+
+  await addDoc(
+    collection(db, "restaurants", restaurantId, "kategorien"),
+    { name }
   );
 
-  let categories = [];
+  loadMenu();
+  loadCategoriesDropdown();
+};
 
-  snap.forEach(doc => {
-    categories.push({
-      id: doc.id,
-      ...doc.data()
-    });
-  });
+window.addItem = async function() {
 
-  const order = ["Getränke", "Salate", "Hauptgerichte", "kleine Snacks", "Extras", "Dessert"];
+  let name = document.getElementById("name").value;
+  let price = parseFloat(document.getElementById("price").value);
+  let category = document.getElementById("category").value;
 
-  categories.sort((a, b) => {
-    let indexA = order.indexOf(a.name);
-    let indexB = order.indexOf(b.name);
+  if (!name || !price) return;
 
-    if (indexA === -1) indexA = 999;
-    if (indexB === -1) indexB = 999;
+  await addDoc(
+    collection(db, "restaurants", restaurantId, "kategorien", category, "produkte"),
+    {
+      name,
+      price,
+      order: Date.now(),
+      active: true
+    }
+  );
 
-    return indexA - indexB;
-  });
+  loadMenu();
+};
 
-  categories.forEach(cat => {
-    let option = document.createElement("option");
-    option.value = cat.id;
-    option.text = getCategoryIcon(cat.name) + " " + cat.name;
-    select.appendChild(option);
-  });
-}
+window.deleteItem = async function(category, id) {
+  await deleteDoc(
+    doc(db, "restaurants", restaurantId, "kategorien", category, "produkte", id)
+  );
+  loadMenu();
+};
 
 window.editItem = async function(category, id, name, price) {
 
@@ -256,19 +249,6 @@ window.editItem = async function(category, id, name, price) {
   loadMenu();
 };
 
-
-window.deleteItem = async function(category, id) {
-
-  if (!confirm("Löschen?")) return;
-
-  await deleteDoc(
-    doc(db, "restaurants", restaurantId, "kategorien", category, "produkte", id)
-  );
-
-  loadMenu();
-};
-
-
 window.toggleActive = async function(category, id, current) {
 
   await updateDoc(
@@ -281,7 +261,6 @@ window.toggleActive = async function(category, id, current) {
   loadMenu();
 };
 
-
 window.updateOrder = async function(category, id, newOrder) {
 
   await updateDoc(
@@ -293,10 +272,8 @@ window.updateOrder = async function(category, id, newOrder) {
 
   loadMenu();
 };
-// 👉 REST bleibt IDENTISCH wie bei dir
-// (addItem, deleteItem, toggleActive usw.)
 
-// 🔥 WICHTIG (einziger technischer Fix!)
+// 🔥 START
 document.addEventListener("DOMContentLoaded", () => {
   loadMenu();
   loadCategoriesDropdown();
