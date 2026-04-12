@@ -164,8 +164,9 @@ container.appendChild(title);
 // 👉 GRID
 let grid = document.createElement("div");
 grid.style.display = "grid";
-grid.style.gridTemplateColumns = "repeat(auto-fill, 180px)";
-grid.style.gap = "10px";
+grid.style.gridTemplateColumns = "repeat(auto-fit, minmax(120px, 1fr))";
+grid.style.columnGap = "1px";
+grid.style.rowGap = "1px";
 grid.style.justifyContent = "center";
 
 container.appendChild(grid);
@@ -183,8 +184,8 @@ btn.style.border = "none";
   // btn.style.border = "1px solid #ccc";
   btn.style.cursor = "pointer";
 
-  btn.style.width = "180px";
-  btn.style.height = "80px";
+  btn.style.width = "100%";
+  btn.style.height = "70px";
   btn.style.display = "flex";
   btn.style.flexDirection = "column";
   btn.style.justifyContent = "center";
@@ -197,7 +198,7 @@ btn.onmouseover = () => btn.style.opacity = "0.8";
 btn.onmouseout = () => btn.style.opacity = "1";
 
   btn.innerHTML = `
-    <div style="font-size:13px;">
+    <div style="font-size:12px;">
       ${item.name}
     </div>
     <div style="font-size:12px; margin-top:4px;">
@@ -388,7 +389,7 @@ async function renderTables() {
     btn.setAttribute("data-table", tableId);
     btn.style.background = "#bdc3c7";
     btn.style.padding = "30px";
-    btn.style.borderRadius = "15px";
+    btn.style.borderRadius = "6px";
     btn.style.color = "white";
     btn.style.fontSize = "20px";
     btn.style.cursor = "pointer";
