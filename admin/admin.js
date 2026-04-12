@@ -123,7 +123,64 @@ async function loadMenu() {
       let div = document.createElement("div");
       div.className = "item";
 
-      div.innerHTML = `...`; // 🔥 genau wie bei dir (gekürzt hier)
+      div.innerHTML = `
+  <div style="
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+    border:1px solid #ddd;
+    border-radius:8px;
+    padding:8px 10px;
+    margin:6px 0;
+    background:#fff;
+    ${item.active === false ? "opacity:0.4;" : ""}
+  ">
+
+    <!-- NAME + PREIS -->
+    <div style="
+      display:flex;
+      justify-content: space-between;
+      align-items:center;
+      flex:1;
+      font-weight:bold;
+      gap:15px;
+    ">
+
+      <div style="display:flex; align-items:center; gap:10px;">
+
+        <!-- ORDER -->
+        <input 
+          type="number" 
+          value="${item.order ?? 0}" 
+          style="width:60px;"
+          onchange="updateOrder('${cat.id}', '${item.id}', this.value)"
+        >
+
+        <!-- NAME -->
+        <span>${item.name}</span>
+
+      </div>
+
+      <span style="
+        min-width:70px;
+        text-align:right;
+      ">
+        ${item.price.toFixed(2)}€
+      </span>
+
+    </div>
+
+    <!-- BUTTONS -->
+    <div style="display:flex; gap:6px; margin-left:10px;">
+      <button onclick="editItem('${cat.id}', '${item.id}', '${item.name}', ${item.price})">✏️</button>
+      <button onclick="deleteItem('${cat.id}', '${item.id}')">❌</button>
+      <button onclick="toggleActive('${cat.id}', '${item.id}', ${item.active !== false})">
+        ${item.active === false ? "👁️‍🗨️" : "🚫"}
+      </button>
+    </div>
+
+  </div>
+`;
 
       menuDiv.appendChild(div);
     });
