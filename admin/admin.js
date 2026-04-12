@@ -237,6 +237,62 @@ async function loadCategoriesDropdown() {
     select.appendChild(option);
   });
 }
+
+window.editItem = async function(category, id, name, price) {
+
+  let newName = prompt("Name:", name);
+  let newPrice = prompt("Preis:", price);
+
+  if (!newName || !newPrice) return;
+
+  await updateDoc(
+    doc(db, "restaurants", restaurantId, "kategorien", category, "produkte", id),
+    {
+      name: newName,
+      price: parseFloat(newPrice)
+    }
+  );
+
+  loadMenu();
+};
+
+
+window.deleteItem = async function(category, id) {
+
+  if (!confirm("Löschen?")) return;
+
+  await deleteDoc(
+    doc(db, "restaurants", restaurantId, "kategorien", category, "produkte", id)
+  );
+
+  loadMenu();
+};
+
+
+window.toggleActive = async function(category, id, current) {
+
+  await updateDoc(
+    doc(db, "restaurants", restaurantId, "kategorien", category, "produkte", id),
+    {
+      active: !current
+    }
+  );
+
+  loadMenu();
+};
+
+
+window.updateOrder = async function(category, id, newOrder) {
+
+  await updateDoc(
+    doc(db, "restaurants", restaurantId, "kategorien", category, "produkte", id),
+    {
+      order: Number(newOrder)
+    }
+  );
+
+  loadMenu();
+};
 // 👉 REST bleibt IDENTISCH wie bei dir
 // (addItem, deleteItem, toggleActive usw.)
 
