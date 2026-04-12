@@ -165,6 +165,7 @@ container.appendChild(title);
 let grid = document.createElement("div");
 grid.style.display = "grid";
 grid.style.gridTemplateColumns = "repeat(auto-fit, minmax(100px, 1fr))";
+grid.style.gridAutoRows = "min-content";   // 🔥 DAS ist der Fix!
 grid.style.columnGap = "1px";
 grid.style.rowGap = "1px";
 grid.style.justifyContent = "strech";
@@ -178,15 +179,16 @@ items.forEach(item => {
 
   let color = categoryColors[cat.name] || "#bdc3c7";
 
-btn.style.background = cat.color || "#f8f9fa";
-btn.style.color = "white";
-btn.style.border = "none";
+  btn.style.background = cat.color || "#f8f9fa";
+  btn.style.color = "white";
+  btn.style.border = "none";
   // btn.style.border = "1px solid #ccc";
   btn.style.cursor = "pointer";
-btn.style.boxSizing = "border-box";
-btn.style.width = "100%";
+  btn.style.boxSizing = "border-box";
   btn.style.width = "100%";
-  btn.style.height = "70px";
+  btn.style.width = "100%";
+  btn.style.height = "auto";
+  btn.style.minHeight = "0";      // 🔥 verhindert Streckung
   btn.style.display = "flex";
   btn.style.flexDirection = "column";
   btn.style.justifyContent = "center";
@@ -195,17 +197,27 @@ btn.style.width = "100%";
   btn.style.whiteSpace = "normal";
   btn.style.wordBreak = "break-word";
   btn.style.color = getTextColor(cat.color);
-btn.onmouseover = () => btn.style.opacity = "0.8";
+  btn.style.justifyContent = "flex-start";  // 🔥 wichtig!
+  btn.style.display = "flex";
+  btn.style.flexDirection = "column";
+  btn.style.alignItems = "center";
+  btn.style.justifyContent = "flex-start";
+  btn.style.padding = "4px";
+  btn.style.gap = "0px";          // 🔥 KEIN Abstand
+ 
+
+
+btn.onmouseover = () => btn.style.opacity = "0.6";
 btn.onmouseout = () => btn.style.opacity = "1";
 
-  btn.innerHTML = `
-    <div style="font-size:12px;">
-      ${item.name}
-    </div>
-    <div style="font-size:12px; margin-top:4px;">
-      ${Number(item.price).toFixed(2)}€
-    </div>
-  `;
+btn.innerHTML = `
+  <div style="font-size:13px; line-height:1;">
+    ${item.name}
+  </div>
+  <div style="font-size:12px; line-height:1;">
+    ${Number(item.price).toFixed(2)}€
+  </div>
+`;
 
   if (cat.name === "Extras") {
     btn.onclick = () => addExtraToItem(item);
