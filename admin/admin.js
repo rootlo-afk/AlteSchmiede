@@ -20,6 +20,8 @@ const db = getFirestore(app);
 
 const restaurantId = "AlteSchmiede";
 
+
+
 const menuDiv = document.getElementById("menuList");
 
 let isLoading = false;
@@ -130,55 +132,59 @@ async function loadMenu() {
 
       let div = document.createElement("div");
       div.className = "item";
+const isActive = item.active !== false;
 
-      div.innerHTML = `
-        <div style="
-          display:flex;
-          justify-content: space-between;
-          align-items:center;
-          border:1px solid #ddd;
-          border-radius:8px;
-          padding:8px 10px;
-          margin:6px 0;
-          background:#fff;
-          ${item.active === false ? "opacity:0.4;" : ""}
-        ">
+div.innerHTML = `
+  <div style="
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+    border:1px solid #ddd;
+    border-radius:8px;
+    padding:8px 10px;
+    margin:6px 0;
+    background:#fff;
+    ${!isActive ? "opacity:0.4;" : ""}
+  ">
 
-          <div style="
-            display:flex;
-            justify-content: space-between;
-            align-items:center;
-            flex:1;
-            font-weight:bold;
-            gap:15px;
-          ">
+    <div style="
+      display:flex;
+      justify-content: space-between;
+      align-items:center;
+      flex:1;
+      font-weight:bold;
+      gap:15px;
+    ">
 
-            <div style="display:flex; align-items:center; gap:10px;">
-              <input 
-                type="number" 
-                value="${item.order ?? 0}" 
-                style="width:60px;"
-                onchange="updateOrder('${cat.id}', '${item.id}', this.value)"
-              >
-              <span>${item.name}</span>
-            </div>
+      <div style="display:flex; align-items:center; gap:10px;">
 
-            <span style="min-width:70px; text-align:right;">
-              ${item.price.toFixed(2)}€
-            </span>
+        <input 
+          type="number" 
+          value="${item.order ?? 0}" 
+          style="width:60px;"
+          onchange="updateOrder('${cat.id}', '${item.id}', this.value)"
+        >
 
-          </div>
+        <span>${item.name}</span>
 
-          <div style="display:flex; gap:6px; margin-left:10px;">
-            <button onclick="editItem('${cat.id}', '${item.id}', '${item.name}', ${item.price})">✏️</button>
-            <button onclick="deleteItem('${cat.id}', '${item.id}')">❌</button>
-            onclick="toggleActive('${cat.id}', '${item.id}', ${item.active})"
-              ${item.active === false ? "👁️‍🗨️" : "🚫"}
-            </button>
-          </div>
+      </div>
 
-        </div>
-      `;
+      <span style="min-width:70px; text-align:right;">
+        ${item.price.toFixed(2)}€
+      </span>
+
+    </div>
+
+    <div style="display:flex; gap:6px; margin-left:10px;">
+      <button onclick="editItem('${cat.id}', '${item.id}', '${item.name}', ${item.price})">✏️</button>
+      <button onclick="deleteItem('${cat.id}', '${item.id}')">❌</button>
+      <button onclick="toggleActive('${cat.id}', '${item.id}', ${isActive})">
+        ${isActive ? "🚫" : "👁️‍🗨️"}
+      </button>
+    </div>
+
+  </div>
+`;
 
       menuDiv.appendChild(div);
     });
