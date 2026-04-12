@@ -17,10 +17,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const isActive = item.active !== false;
-<button onclick="toggleActive('${cat.id}', '${item.id}', ${isActive})">
-  ${isActive ? "🚫" : "👁️‍🗨️"}
-</button>
+
 const restaurantId = "AlteSchmiede";
 
 const menuDiv = document.getElementById("menuList");
