@@ -172,7 +172,7 @@ async function loadMenu() {
           <div style="display:flex; gap:6px; margin-left:10px;">
             <button onclick="editItem('${cat.id}', '${item.id}', '${item.name}', ${item.price})">✏️</button>
             <button onclick="deleteItem('${cat.id}', '${item.id}')">❌</button>
-            <button onclick="toggleActive('${cat.id}', '${item.id}', ${item.active !== false})">
+            onclick="toggleActive('${cat.id}', '${item.id}', ${item.active})"
               ${item.active === false ? "👁️‍🗨️" : "🚫"}
             </button>
           </div>
