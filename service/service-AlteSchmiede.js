@@ -164,7 +164,7 @@ container.appendChild(title);
 // 👉 GRID
 let grid = document.createElement("div");
 grid.style.display = "grid";
-grid.style.gridTemplateColumns = "repeat(auto-fit, minmax(80px, 1fr))";
+grid.style.gridTemplateColumns = "repeat(auto-fit, minmax(120px, 1fr))";
 grid.style.columnGap = "1px";
 grid.style.rowGap = "1px";
 grid.style.justifyContent = "strech";
