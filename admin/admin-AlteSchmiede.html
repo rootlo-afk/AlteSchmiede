@@ -239,7 +239,7 @@ div.innerHTML = `
 <button onclick="editItem('${cat.id}', '${item.id}', '${item.name}', ${item.price})">✏️</button>
 <button onclick="deleteItem('${cat.id}', '${item.id}')">❌</button>
 <button onclick="toggleActive('${cat.id}', '${item.id}', ${item.active !== false})">
-  ${item.active ? "👁️" : "🚫"}
+  ${item.active === true? "👁️‍🗨️" : "🚫"}
 </button>
 
     </div>
