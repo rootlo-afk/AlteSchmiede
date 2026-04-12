@@ -198,7 +198,7 @@ div.innerHTML = `
     padding:8px 10px;
     margin:6px 0;
     background:#fff;
-    style="opacity:${item.active === false ? 0.4 : 1}"
+   ${item.active ? "" : "opacity:0.4;"}
   ">
 
     <!-- NAME + PREIS -->
