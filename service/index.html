@@ -9,20 +9,29 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 
+
+
   <style>
-    
+
+    #categories button,
+#categories div {
+  padding: 6px 8px;
+  margin: 1px;              /* 🔥 fast kein Abstand */
+  font-size: 16px;          /* groß lassen */
+  border-radius: 6px;
+}
     body
      { font-family: Arial; 
       text-align: center;
       text-align: center;
-      background: #a1e6eb;  /* 🔥 NEU dunkel */
+      background: #dbeba1;  /* 🔥 NEU dunkel */
       color: #191b1b;       /* 🔥 heller Text */ }
     
     button
-     { padding: 15px; margin: 2px; 
+     { padding: 8px; margin: 10px; 
       font-size: 18px;  background: #feffff;
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
       color: #2c3e50; }
       
     .container { display: flex; }
@@ -146,7 +155,49 @@
   border-radius: 10px;
   padding: 12px;
 }
+button {
+  padding: 6px;
+  margin: 0;   /* 🔥 GANZ WICHTIG */
+  font-size: 18px;
+}
+.table-range {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
 
+/* 🔥 Inputs ultra kompakt */
+.table-input {
+  width: 35px;
+  height: 28px;
+  padding: 0;
+  text-align: center;
+  border: 1px solid #666;
+  border-radius: 0;       /* ❌ keine Rundung */
+  font-size: 14px;
+}
+
+/* 🔥 Button gleiche Größe */
+.table-btn {
+  height: 28px;
+  padding: 0 8px;
+  font-size: 14px;
+  border: 1px solid #666;
+  border-radius: 0;
+  background: #eee;
+  cursor: pointer;
+}
+
+/* 🔥 Pfeile entfernen */
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}
   </style>
   
 </head>
@@ -177,27 +228,31 @@
 
 <div style="
   display:flex;
-  justify-content: space-between;
+  gap: 15px;
   align-items: center;
   margin-bottom: 15px;
 ">
 
   <h2 style="margin:0; margin-left:10px;">Tische</h2>
 
-  <div style="display:flex; gap:10px; align-items:center;">
-    Von <input id="rangeStart" type="number" value="1" style="width:70px; padding:8px;">
-    Bis <input id="rangeEnd" type="number" value="10" style="width:70px; padding:8px;">
-    <button onclick="renderTables()" style="padding:8px 12px; font-size:14px;">
-      Anzeigen
-    </button>
-  </div>
+<div class="table-range">
+  <input id="rangeStart" type="number" min="1" max="99"
+    class="table-input" oninput="validateTableRange()">
+
+  <span>-</span>
+
+  <input id="rangeEnd" type="number" min="1" max="99"
+    class="table-input" oninput="validateTableRange()">
+
+  <button class="table-btn" onclick="renderTables()">OK</button>
+</div>
 
 </div>
 
     <div id="tables" style="
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  gap: 2px;
 "></div>
   </div>
 
