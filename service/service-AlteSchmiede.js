@@ -183,7 +183,8 @@ btn.style.color = "white";
 btn.style.border = "none";
   // btn.style.border = "1px solid #ccc";
   btn.style.cursor = "pointer";
-
+btn.style.boxSizing = "border-box";
+btn.style.width = "100%";
   btn.style.width = "100%";
   btn.style.height = "70px";
   btn.style.display = "flex";
