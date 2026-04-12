@@ -377,6 +377,9 @@ async function renderTables() {
 
   const tablesDiv = document.getElementById("tables");
   tablesDiv.innerHTML = "";
+  tablesDiv.style.display = "grid";
+tablesDiv.style.gridTemplateColumns = "repeat(auto-fit, minmax(140px, 1fr))";
+tablesDiv.style.gap = "6px";
 
   // let start = parseInt(document.getElementById("rangeStart").value);
   // let end = parseInt(document.getElementById("rangeEnd").value);
@@ -397,7 +400,7 @@ async function renderTables() {
     btn.style.textAlign = "center";
     btn.style.boxSizing = "border-box";  // 🔥 verhindert Überlauf
     btn.style.width = "100%";            // 🔥 passt sich an Grid an
-    btn.style.padding = "10px";          // 🔥 kleiner
+    btn.style.padding = "15px 5px";          // 🔥 kleiner
 
     btn.innerHTML = `
       🪑 Tisch ${tableId}<br>
