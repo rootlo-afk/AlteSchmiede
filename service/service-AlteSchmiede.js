@@ -122,7 +122,7 @@ async function loadMenu() {
       const data = doc.data();
 
       // 🔥 RICHTIGER FILTER
-      if (data.active === true) return;
+      if (data.active === false) return;
 
       items.push({
         id: doc.id,
