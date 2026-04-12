@@ -144,7 +144,7 @@ div.innerHTML = `
     padding:8px 10px;
     margin:6px 0;
     background:#fff;
-    ${!isActive ? "opacity:0.4;" : ""}
+    ${item.active === false ? "opacity:0.4;" : ""}
   ">
 
     <div style="
