@@ -164,10 +164,10 @@ container.appendChild(title);
 // 👉 GRID
 let grid = document.createElement("div");
 grid.style.display = "grid";
-grid.style.gridTemplateColumns = "repeat(auto-fit, minmax(120px, 1fr))";
+grid.style.gridTemplateColumns = "repeat(auto-fit, minmax(80px, 1fr))";
 grid.style.columnGap = "1px";
 grid.style.rowGap = "1px";
-grid.style.justifyContent = "center";
+grid.style.justifyContent = "strech";
 
 container.appendChild(grid);
 
@@ -395,6 +395,9 @@ async function renderTables() {
     btn.style.fontSize = "20px";
     btn.style.cursor = "pointer";
     btn.style.textAlign = "center";
+    btn.style.boxSizing = "border-box";  // 🔥 verhindert Überlauf
+    btn.style.width = "100%";            // 🔥 passt sich an Grid an
+    btn.style.padding = "10px";          // 🔥 kleiner
 
     btn.innerHTML = `
       🪑 Tisch ${tableId}<br>
