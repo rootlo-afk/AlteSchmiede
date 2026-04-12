@@ -1,7 +1,7 @@
 {
   "name": "admin",
   "short_name": "admin",
-  "start_url": "./admin.html",
+  "start_url": "./admin-AlteSchmiede.html",
   "display": "standalone",
   "background_color": "#27ae60",
   "theme_color": "#27ae60",
