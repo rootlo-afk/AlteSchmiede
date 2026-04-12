@@ -134,62 +134,78 @@ async function loadMenu() {
       div.className = "item";
 const isActive = item.active !== false;
 
-div.innerHTML = `
-  <div style="
-    display:flex;
-    justify-content: space-between;
-    align-items:center;
-    border:1px solid #ddd;
-    border-radius:8px;
-    padding:8px 10px;
-    margin:6px 0;
-    background:#fff;
-    ${item.active === false ? "opacity:0.4;" : ""}
-  ">
+items.forEach(item => {
 
-    <div style="
-      display:flex;
-      justify-content: space-between;
-      align-items:center;
-      flex:1;
-      font-weight:bold;
-      gap:15px;
-    ">
+  let wrapper = document.createElement("div");
+  wrapper.className = "item";
 
-      <div style="display:flex; align-items:center; gap:10px;">
+  let inner = document.createElement("div");
 
-        <input 
-          type="number" 
-          value="${item.order ?? 0}" 
-          style="width:60px;"
-          onchange="updateOrder('${cat.id}', '${item.id}', this.value)"
-        >
+  inner.style.display = "flex";
+  inner.style.justifyContent = "space-between";
+  inner.style.alignItems = "center";
+  inner.style.border = "1px solid #ddd";
+  inner.style.borderRadius = "8px";
+  inner.style.padding = "8px 10px";
+  inner.style.margin = "6px 0";
+  inner.style.background = "#fff";
 
-        <span>${item.name}</span>
+  // 🔥 HIER STEUERST DU GRAU / HELL
+  inner.style.opacity = item.active ? "0.4" : "1";
 
-      </div>
+  // LINKS (Order + Name)
+  let left = document.createElement("div");
+  left.style.display = "flex";
+  left.style.alignItems = "center";
+  left.style.gap = "10px";
+  left.style.fontWeight = "bold";
 
-      <span style="min-width:70px; text-align:right;">
-        ${item.price.toFixed(2)}€
-      </span>
+  let input = document.createElement("input");
+  input.type = "number";
+  input.value = item.order ?? 0;
+  input.style.width = "60px";
+  input.onchange = () => updateOrder(cat.id, item.id, input.value);
 
-    </div>
+  let name = document.createElement("span");
+  name.innerText = item.name;
 
-    <div style="display:flex; gap:6px; margin-left:10px;">
-      <button onclick="editItem('${cat.id}', '${item.id}', '${item.name}', ${item.price})">✏️</button>
-      <button onclick="deleteItem('${cat.id}', '${item.id}')">❌</button>
-      <button onclick="toggleActive('${cat.id}', '${item.id}', ${item.active !== false})">
-        ${isActive ? "🚫" : "👁️‍🗨️"}
-      </button>
-    </div>
+  left.appendChild(input);
+  left.appendChild(name);
 
-  </div>
-`;
+  // RECHTS (Preis + Buttons)
+  let right = document.createElement("div");
+  right.style.display = "flex";
+  right.style.alignItems = "center";
+  right.style.gap = "6px";
 
-      menuDiv.appendChild(div);
-    });
-  }
+  let price = document.createElement("span");
+  price.innerText = item.price.toFixed(2) + "€";
+  price.style.minWidth = "70px";
+  price.style.textAlign = "right";
 
+  let btnEdit = document.createElement("button");
+  btnEdit.innerText = "✏️";
+  btnEdit.onclick = () => editItem(cat.id, item.id, item.name, item.price);
+
+  let btnDelete = document.createElement("button");
+  btnDelete.innerText = "❌";
+  btnDelete.onclick = () => deleteItem(cat.id, item.id);
+
+  let btnToggle = document.createElement("button");
+  btnToggle.innerText = item.active ? "🚫" : "👁️‍🗨️";
+  btnToggle.onclick = () => toggleActive(cat.id, item.id, item.active);
+
+  right.appendChild(price);
+  right.appendChild(btnEdit);
+  right.appendChild(btnDelete);
+  right.appendChild(btnToggle);
+
+  inner.appendChild(left);
+  inner.appendChild(right);
+  wrapper.appendChild(inner);
+
+  menuDiv.appendChild(wrapper);
+});
   isLoading = false;
 }
 
