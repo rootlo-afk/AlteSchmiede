@@ -1,4 +1,3 @@
-<script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 
 import {
@@ -240,4 +239,3 @@ installBtn.addEventListener("click", async () => {
 window.addEventListener("appinstalled", () => {
   installBtn.style.display = "none";
 });
-</script>
