@@ -188,7 +188,55 @@ async function loadMenu() {
 
   isLoading = false;
 }
+function getCategoryIcon(name) {
+  switch (name) {
+    case "Getränke": return "🍺";
+    case "Salate": return "🥗";
+    case "Hauptgerichte": return "🍽️";
+    case "Extras": return "➕";
+    case "Dessert": return "🍰";
+    default: return "📦";
+  }
+}
+async function loadCategoriesDropdown() {
 
+  const select = document.getElementById("category");
+  if (!select) return; // 🔥 wichtig!
+
+  select.innerHTML = "";
+
+  const snap = await getDocs(
+    collection(db, "restaurants", restaurantId, "kategorien")
+  );
+
+  let categories = [];
+
+  snap.forEach(doc => {
+    categories.push({
+      id: doc.id,
+      ...doc.data()
+    });
+  });
+
+  const order = ["Getränke", "Salate", "Hauptgerichte", "kleine Snacks", "Extras", "Dessert"];
+
+  categories.sort((a, b) => {
+    let indexA = order.indexOf(a.name);
+    let indexB = order.indexOf(b.name);
+
+    if (indexA === -1) indexA = 999;
+    if (indexB === -1) indexB = 999;
+
+    return indexA - indexB;
+  });
+
+  categories.forEach(cat => {
+    let option = document.createElement("option");
+    option.value = cat.id;
+    option.text = getCategoryIcon(cat.name) + " " + cat.name;
+    select.appendChild(option);
+  });
+}
 // 👉 REST bleibt IDENTISCH wie bei dir
 // (addItem, deleteItem, toggleActive usw.)
 
