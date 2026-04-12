@@ -1134,15 +1134,30 @@ function updateConnectionStatus() {
   }
 }
 function getTextColor(bgColor) {
-  let c = bgColor.substring(1); // # entfernen
+  if (!bgColor) return "black"; // 🔥 Absicherung
+
+  let c = bgColor.substring(1);
   let rgb = parseInt(c, 16);
+
   let r = (rgb >> 16) & 0xff;
   let g = (rgb >> 8) & 0xff;
   let b = (rgb >> 0) & 0xff;
 
+  // 👉 Helligkeit berechnen
   let brightness = (r * 299 + g * 587 + b * 114) / 1000;
 
+  // 👉 Entscheidung
   return brightness > 150 ? "black" : "white";
+}
+function validateTableRange() {
+  let start = parseInt(rangeStart.value);
+  let end = parseInt(rangeEnd.value);
+
+  if (end < start) {
+    rangeEnd.style.border = "2px solid red";
+  } else {
+    rangeEnd.style.border = "";
+  }
 }
 // Funktionen global machen (für Buttons)
 window.confirmPayment = confirmPayment;
