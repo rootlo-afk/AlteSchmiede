@@ -420,10 +420,14 @@ tablesDiv.style.gap = "6px";
       <div style="font-size:18px;"></div>
     `;
 
-    btn.onclick = () => {
-      document.getElementById("table").value = tableId;
-      openTableDetails(tableId);
-    };
+btn.onclick = () => {
+  document.getElementById("table").value = tableId;
+
+  openTableDetails(tableId);
+
+  // 🔥 NEU: Titel ändern
+  document.getElementById("cartTitle").innerText = "Warenkorb – Tisch " + tableId;
+};
 
     tablesDiv.appendChild(btn);
 
@@ -677,7 +681,7 @@ await openTableDetails(table);
 // ----------------------
 
 document.addEventListener("DOMContentLoaded", () => {
-
+  document.getElementById("cartTitle").innerText = "Warenkorb – kein Tisch gewählt";
   // 🔥 gespeicherte Werte laden
   const savedStart = localStorage.getItem("tableStart");
   const savedEnd = localStorage.getItem("tableEnd");
