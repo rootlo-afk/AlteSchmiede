@@ -860,10 +860,15 @@ paymentList.forEach(item => {
 });
 
   // 🔥 Umsatz speichern
-  await addDoc(collection(db, "restaurants", restaurantId, "sales"), {
-    amount: totalPaid,
-    time: Date.now()
-  });
+await addDoc(collection(db, "restaurants", restaurantId, "sales"), {
+  amount: totalPaid,
+  time: Date.now(),
+  items: paymentList.map(i => ({
+    name: i.name,
+    qty: i.qty || 1,
+    extras: i.extras || []
+  }))
+});
 
   // 🔥 ITEMS VERARBEITEN
   for (let item of paymentList) {
