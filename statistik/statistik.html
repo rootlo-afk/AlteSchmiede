@@ -1,1 +1,194 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Statistik</title>
+
+<!-- Chart.js korrekt ohne Inline-Code -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body { font-family: Arial; background:#f5f5f5; text-align:center; }
+.container { max-width:700px; margin:auto; background:white; padding:20px; border-radius:10px; }
+input, button { padding:10px; margin:10px; font-size:16px; }
+.result { font-size:20px; margin-top:20px; }
+.error { color:red; }
+</style>
+</head>
+<body>
+
+<div class="container">
+<h2>📊 Statistik</h2>
+<div id="error" class="error"></div>
+
+<h3>📅 Tagesumsatz</h3>
+<input type="date" id="dayPicker">
+<button onclick="getDailyRevenue()">Berechnen</button>
+<div id="dayResult" class="result"></div>
+
+<h3>📆 Monatsumsatz</h3>
+<input type="month" id="monthPicker">
+<button onclick="getMonthlyRevenue()">Berechnen</button>
+<div id="monthResult" class="result"></div>
+
+<h3>📈 Umsatz Verlauf</h3>
+<button onclick="drawChart()">Diagramm laden</button>
+<canvas id="chart"></canvas>
+
+<h3>🥇 Top Artikel</h3>
+<button onclick="getTopItems()">Berechnen</button>
+<div id="topItems"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBFJ6n7f3U3qpfezvqTgx9vugOpMSp284o",
+  authDomain: "oberkellner-app.firebaseapp.com",
+  projectId: "oberkellner-app"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const restaurantId = "AlteSchmiede";
+let chartInstance = null;
+
+// ✅ Default Datum + Auto Laden
+window.addEventListener('DOMContentLoaded', async () => {
+  const today = new Date();
+  const day = today.toLocaleDateString('sv-SE');
+  const month = day.slice(0,7);
+
+  document.getElementById("dayPicker").value = day;
+  document.getElementById("monthPicker").value = month;
+
+  await getDailyRevenue();
+  await getMonthlyRevenue();
+  await drawChart();
+});
+
+function extractItems(orderDoc) {
+  const items = [];
+
+  if (Array.isArray(orderDoc.items)) {
+    orderDoc.items.forEach(i => {
+      if (i.extras && i.extras.name) {
+        items.push({ name: i.extras.name, qty: Number(i.extras.qty) || 0 });
+      } else if (i.name) {
+        items.push({ name: i.name, qty: Number(i.qty) || 1 });
+      }
+    });
+  }
+
+  return items;
+}
+
+async function getAllOrders() {
+  let orders = [];
+
+  const salesSnap = await getDocs(
+    collection(db, "restaurants", restaurantId, "sales")
+  );
+
+  salesSnap.forEach(doc => {
+    const data = doc.data();
+    if (!data.time) return;
+
+    orders.push({
+      amount: Number(data.amount) || 0,
+      date: new Date(Number(data.time)),
+      items: extractItems(data)
+    });
+  });
+
+  return orders;
+}
+
+window.getDailyRevenue = async function() {
+  const selectedDate = document.getElementById("dayPicker").value;
+  const orders = await getAllOrders();
+  let total = 0;
+
+  orders.forEach(order => {
+    if (order.date.toLocaleDateString('sv-SE') === selectedDate) {
+      total += order.amount;
+    }
+  });
+
+  document.getElementById("dayResult").innerText = "💰 " + total.toFixed(2) + " €";
+}
+
+window.getMonthlyRevenue = async function() {
+  const selectedMonth = document.getElementById("monthPicker").value;
+  const orders = await getAllOrders();
+  let total = 0;
+
+  orders.forEach(order => {
+    if (order.date.toLocaleDateString('sv-SE').slice(0,7) === selectedMonth) {
+      total += order.amount;
+    }
+  });
+
+  document.getElementById("monthResult").innerText = "💰 " + total.toFixed(2) + " €";
+}
+
+window.drawChart = async function() {
+  const selectedMonth = document.getElementById("monthPicker").value;
+  const orders = await getAllOrders();
+  const dailyTotals = {};
+
+  orders.forEach(order => {
+    const m = order.date.toLocaleDateString('sv-SE').slice(0,7);
+    if (m === selectedMonth) {
+      const d = order.date.toLocaleDateString('sv-SE');
+      if (!dailyTotals[d]) dailyTotals[d] = 0;
+      dailyTotals[d] += order.amount;
+    }
+  });
+
+  const labels = Object.keys(dailyTotals).sort();
+  const data = labels.map(d => dailyTotals[d]);
+
+  const ctx = document.getElementById("chart").getContext("2d");
+  if (chartInstance) chartInstance.destroy();
+
+  chartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{ label: 'Umsatz €', data: data }]
+    }
+  });
+}
+
+window.getTopItems = async function() {
+  const orders = await getAllOrders();
+  const stats = {};
+
+  orders.forEach(order => {
+    order.items.forEach(item => {
+      if (!stats[item.name]) stats[item.name] = 0;
+      stats[item.name] += item.qty;
+    });
+  });
+
+  let html = "";
+  Object.entries(stats)
+    .sort((a,b) => b[1]-a[1])
+    .slice(0,10)
+    .forEach(item => {
+      html += item[0] + ": " + item[1] + "x<br>";
+    });
+
+  document.getElementById("topItems").innerHTML = html || "⚠️ Noch keine Items gespeichert";
+}
+
+</script>
+
+</body>
+</html>
 
