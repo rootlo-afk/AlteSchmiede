@@ -4,99 +4,122 @@
   <title>Küche</title>
   <link rel="manifest" href="manifest-kitchen.json">
 
-<meta name="theme-color" content="#2c3e50">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="theme-color" content="#2c3e50">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
   <style>
-body { font-family: Arial; }
+    body {
+      font-family: Arial;
+      background: #ebecee;
+      color: rgb(27, 26, 26);
+    }
 
-.order {
-  border: 1px solid #444;
-  padding: 10px;
-  margin: 10px;
-  border-radius: 10px;
-  position: relative;
-  background: #34495e; /* 🔥 dunkles Grau-Blau */
-}
+    .order {
+      border: 1px solid #444;
+      padding: 10px;
+      margin: 10px;
+      border-radius: 10px;
+      position: relative;
+      background: #34495e;
+    }
 
-.order-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 18px;
-  font-weight: bold;
-  padding: 5px 0;
-}
+    .order-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 18px;
+      font-weight: bold;
+      padding: 5px 0;
+    }
 
-.done-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  padding: 6px 10px;
-  font-size: 13px;
-  cursor: pointer;
-}
+    .done-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 6px 10px;
+      font-size: 13px;
+      cursor: pointer;
+    }
 
-.offen {
-  background: #2be2e2;  /* 🔴 dunkleres Rot */
-  color: rgb(3, 3, 3);
-}
+    .offen {
+      background: #2be2e2;
+      color: rgb(3, 3, 3);
+    }
 
-.fertig {
-  background: #27ae60;  /* 🟢 angenehmeres Grün */
-  color: white;
-}
-body {
-  font-family: Arial;
-  background: #ebecee;   /* 🔥 dunkler Hintergrund */
-  color: rgb(27, 26, 26);
-}
-button {
-  padding: 10px;
-  margin-top: 10px;
-  font-size: 16px;
-  cursor: pointer;
-  background: #ecf0f1;
-  border: none;
-  border-radius: 8px;
-}
+    .fertig {
+      background: #27ae60;
+      color: white;
+    }
+
+    button {
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      background: #ecf0f1;
+      border: none;
+      border-radius: 8px;
+    }
+
+    /* ✅ Footer FIXED unten rechts */
+    .footer {
+      position: fixed;
+      bottom: 4px;
+      right: 8px;
+      left: auto;
+      font-size: 10px;
+      color: #95a5a6;
+      opacity: 0.6;
+      z-index: 9999;
+      pointer-events: none;
+    }
+
     @media (max-width: 768px) {
+      .container {
+        display: block !important;
+      }
 
-  .container {
-    display: block !important;
-  }
+      .left, .right {
+        width: 100% !important;
+      }
 
-  .left, .right {
-    width: 100% !important;
-  }
+      .right {
+        width: 30%;
+        padding: 10px;
+        background: #16e7c4;
+        border-radius: 10px;
+      }
 
-  .right {
-  width: 30%;
-  padding: 10px;
-  background: #16e7c4;  /* 🔥 dunkles Panel */
-  border-radius: 10px;
-}
-#installBtn {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: #2ecc71;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  padding: 12px;
-}
-}
-</style>
+      #installBtn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #2ecc71;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 12px;
+      }
+    }
+  </style>
 </head>
 
 <body>
 
 <h1>👨‍🍳 Küche</h1>
+
 <button id="installBtn" style="display:none; margin-bottom:10px;">
   📲 App installieren
 </button>
+
 <div id="orders"></div>
+
+<!-- ✅ Footer -->
+<div class="footer">
+  built & designed by rootlo
+</div>
+
 <script>
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("./sw.js");
@@ -129,6 +152,8 @@ window.addEventListener("appinstalled", () => {
   installBtn.style.display = "none";
 });
 </script>
-  <script type="module" src="kitchen.js"></script>
-  </body>
+
+<script type="module" src="kitchen.js"></script>
+
+</body>
 </html>
