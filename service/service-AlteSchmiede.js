@@ -736,7 +736,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 async function openTableDetails(tableId) {
-
+ document.getElementById("activeTable").innerText = "🪑 Tisch " + tableId;
   paymentList = [];
 
   const paymentDiv = document.getElementById("payment");
@@ -1017,7 +1017,6 @@ await openTableDetails(tableId);
 await updateSingleTable(tableId);
 
 loadSales();
-  loadSales();
 }
 
 async function loadSales() {
