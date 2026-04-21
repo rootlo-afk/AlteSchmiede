@@ -78,160 +78,159 @@ let selectedItemId = null;
 // 🍽️ MENÜ LADEN
 // ----------------------
 
+async function getDocsRetry(ref, retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await getDocs(ref);
+    } catch (e) {
+      if (i === retries - 1) throw e;
+    }
+  }
+}
+
 async function loadMenu() {
 
-  catDiv.innerHTML = "";
+  try {
 
-  const catSnap = await getDocs(
-    collection(db, "restaurants", "AlteSchmiede", "kategorien")
-  );
+    catDiv.innerHTML = "Lade Speisekarte...";
 
-  let categories = [];
-
-  catSnap.forEach(doc => {
-    categories.push({
-      id: doc.id,
-      ...doc.data()
-    });
-  });
-
-  // 🔥 SORTIERUNG (NUR EINMAL!)
-  const order = ["Getränke", "Salate", "kleine Snacks", "Hauptgerichte", "Extras", "Dessert"];
-
-  categories.sort((a, b) => {
-    let indexA = order.indexOf(a.name);
-    let indexB = order.indexOf(b.name);
-
-    if (indexA === -1) indexA = 999;
-    if (indexB === -1) indexB = 999;
-
-    return indexA - indexB;
-  });
-
-  // 🔥 ANZEIGE
-  for (const cat of categories) {
-
-    const prodSnap = await getDocs(
-      collection(db, "restaurants", "AlteSchmiede", "kategorien", cat.id, "produkte")
+    const catSnap = await getDocsRetry(
+      collection(db, "restaurants", "AlteSchmiede", "kategorien")
     );
 
-    let items = [];
+    let categories = [];
 
-    prodSnap.forEach(doc => {
-
-      const data = doc.data();
-
-      // 🔥 RICHTIGER FILTER
-      if (data.active === false) return;
-
-      items.push({
+    catSnap.forEach(doc => {
+      categories.push({
         id: doc.id,
-        ...data,
-        category: cat.name
+        ...doc.data()
+      });
+    });
+
+    const order = ["Getränke", "Salate", "kleine Snacks", "Hauptgerichte", "Extras", "Dessert"];
+
+    categories.sort((a, b) => {
+      let indexA = order.indexOf(a.name);
+      let indexB = order.indexOf(b.name);
+
+      if (indexA === -1) indexA = 999;
+      if (indexB === -1) indexB = 999;
+
+      return indexA - indexB;
+    });
+
+    // 👉 erst jetzt leeren (wichtig!)
+    catDiv.innerHTML = "";
+
+    for (const cat of categories) {
+
+      const prodSnap = await getDocsRetry(
+        collection(db, "restaurants", "AlteSchmiede", "kategorien", cat.id, "produkte")
+      );
+
+      let items = [];
+
+      prodSnap.forEach(doc => {
+
+        const data = doc.data();
+
+        if (data.active === false) return;
+
+        items.push({
+          id: doc.id,
+          ...data,
+          category: cat.name
+        });
+
       });
 
-    });
-    // 🔥 SORTIEREN
-items.sort((a, b) => {
+      items.sort((a, b) => {
 
-  let orderA = a.order ?? 999;
-  let orderB = b.order ?? 999;
+        let orderA = a.order ?? 999;
+        let orderB = b.order ?? 999;
 
-  // 🔥 zuerst nach ORDER
-  if (orderA !== orderB) {
-    return orderA - orderB;
+        if (orderA !== orderB) {
+          return orderA - orderB;
+        }
+
+        return a.name.localeCompare(b.name, "de", { sensitivity: "base" });
+
+      });
+
+      if (items.length === 0) continue;
+
+      let container = document.createElement("div");
+
+      let title = document.createElement("h4");
+      title.innerText = cat.name;
+      title.style.textAlign = "center";
+      title.style.margin = "15px 0 5px 10px";
+
+      container.appendChild(title);
+
+      let grid = document.createElement("div");
+      grid.style.display = "grid";
+      grid.style.gridTemplateColumns = "repeat(auto-fit, minmax(100px, 1fr))";
+      grid.style.gridAutoRows = "min-content";
+      grid.style.columnGap = "1px";
+      grid.style.rowGap = "1px";
+      grid.style.justifyContent = "strech";
+
+      container.appendChild(grid);
+
+      items.forEach(item => {
+
+        let btn = document.createElement("button");
+
+        let color = categoryColors[cat.name] || "#bdc3c7";
+
+        btn.style.background = cat.color || "#f8f9fa";
+        btn.style.color = "white";
+        btn.style.border = "none";
+        btn.style.cursor = "pointer";
+        btn.style.boxSizing = "border-box";
+        btn.style.width = "100%";
+        btn.style.height = "auto";
+        btn.style.minHeight = "0";
+        btn.style.display = "flex";
+        btn.style.flexDirection = "column";
+        btn.style.justifyContent = "flex-start";
+        btn.style.alignItems = "center";
+        btn.style.textAlign = "center";
+        btn.style.whiteSpace = "normal";
+        btn.style.wordBreak = "break-word";
+        btn.style.color = getTextColor(cat.color);
+        btn.style.padding = "4px";
+        btn.style.gap = "0px";
+
+        btn.onmouseover = () => btn.style.opacity = "0.6";
+        btn.onmouseout = () => btn.style.opacity = "1";
+
+        btn.innerHTML = `
+          <div style="font-size:13px; line-height:1;">
+            ${item.name}
+          </div>
+          <div style="font-size:12px; line-height:1;">
+            ${Number(item.price).toFixed(2)}€
+          </div>
+        `;
+
+        if (cat.name === "Extras") {
+          btn.onclick = () => addExtraToItem(item);
+        } else {
+          btn.onclick = () => addToCart(item);
+        }
+
+        grid.appendChild(btn);
+      });
+
+      catDiv.appendChild(container);
+    }
+
+  } catch (e) {
+    console.error("Fehler beim Laden der Speisekarte:", e);
+    catDiv.innerHTML = "⚠️ Fehler beim Laden der Speisekarte";
   }
-
-  // 🔥 dann alphabetisch innerhalb gleicher Order
-  return a.name.localeCompare(b.name, "de", { sensitivity: "base" });
-
-});
-
-    // 🔥 WICHTIG: LEERE KATEGORIE ÜBERSPRINGEN
-    if (items.length === 0) continue;
-
-    // 👉 ERST JETZT DIV + TITEL
-let container = document.createElement("div");
-
-// 👉 Kategorie
-let title = document.createElement("h4");
-title.innerText = cat.name;
-title.style.textAlign = "center";
-title.style.margin = "15px 0 5px 10px";
-
-container.appendChild(title);
-
-// 👉 GRID
-let grid = document.createElement("div");
-grid.style.display = "grid";
-grid.style.gridTemplateColumns = "repeat(auto-fit, minmax(100px, 1fr))";
-grid.style.gridAutoRows = "min-content";   // 🔥 DAS ist der Fix!
-grid.style.columnGap = "1px";
-grid.style.rowGap = "1px";
-grid.style.justifyContent = "strech";
-
-container.appendChild(grid);
-
-// 🔥 BUTTONS
-items.forEach(item => {
-
-  let btn = document.createElement("button");
-
-  let color = categoryColors[cat.name] || "#bdc3c7";
-
-  btn.style.background = cat.color || "#f8f9fa";
-  btn.style.color = "white";
-  btn.style.border = "none";
-  // btn.style.border = "1px solid #ccc";
-  btn.style.cursor = "pointer";
-  btn.style.boxSizing = "border-box";
-  btn.style.width = "100%";
-  btn.style.width = "100%";
-  btn.style.height = "auto";
-  btn.style.minHeight = "0";      // 🔥 verhindert Streckung
-  btn.style.display = "flex";
-  btn.style.flexDirection = "column";
-  btn.style.justifyContent = "center";
-  btn.style.alignItems = "center";
-  btn.style.textAlign = "center";
-  btn.style.whiteSpace = "normal";
-  btn.style.wordBreak = "break-word";
-  btn.style.color = getTextColor(cat.color);
-  btn.style.justifyContent = "flex-start";  // 🔥 wichtig!
-  btn.style.display = "flex";
-  btn.style.flexDirection = "column";
-  btn.style.alignItems = "center";
-  btn.style.justifyContent = "flex-start";
-  btn.style.padding = "4px";
-  btn.style.gap = "0px";          // 🔥 KEIN Abstand
- 
-
-
-btn.onmouseover = () => btn.style.opacity = "0.6";
-btn.onmouseout = () => btn.style.opacity = "1";
-
-btn.innerHTML = `
-  <div style="font-size:13px; line-height:1;">
-    ${item.name}
-  </div>
-  <div style="font-size:12px; line-height:1;">
-    ${Number(item.price).toFixed(2)}€
-  </div>
-`;
-
-  if (cat.name === "Extras") {
-    btn.onclick = () => addExtraToItem(item);
-  } else {
-    btn.onclick = () => addToCart(item);
-  }
-
-  grid.appendChild(btn);
-});
-
-// 👉 richtig!
-catDiv.appendChild(container);
-  }
-  
 }
 
 function addToCart(item) {
@@ -1193,4 +1192,3 @@ window.openTableDetails = openTableDetails;
 window.loadFullPayment = loadFullPayment;
 window.sendOrder = sendOrder;
 window.changeQty = changeQty;
-
