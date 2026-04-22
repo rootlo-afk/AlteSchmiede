@@ -246,10 +246,10 @@ function addToCart(item) {
   };
 
   selectedItemId = id;
-
+  resetSendButton(); // 🔥 HIER EINFÜGEN
   renderCart();
 }
-
+ 
 function addExtraToItem(extra) {
 
   if (!selectedItemId || !cart[selectedItemId]) {
@@ -261,7 +261,7 @@ function addExtraToItem(extra) {
     name: extra.name,
     price: Number(extra.price)
   });
-
+  resetSendButton(); // 🔥 HIER EINFÜGEN
   renderCart();
 }
 
@@ -461,7 +461,7 @@ function renderTableSelect() {
 async function loadFullPayment(tableId) {
 
   paymentList = [];
-
+     resetPayButton(); // 🔥 HIER EINFÜGEN
   const div = document.getElementById("payment");
   div.innerHTML = `<h3>🪑 Tisch ${tableId}</h3>`;
 
@@ -542,7 +542,7 @@ async function sendOrder() {
 
   if (!table || Object.keys(cart).length === 0) {
     alert("Tisch & Bestellung nötig!");
-    return;
+    return false;
   }
 
   let allItems = Object.values(cart).map(item => ({
@@ -673,6 +673,7 @@ await updateSingleTable(table);
 
 // 🔥 rechte Seite neu laden
 await openTableDetails(table);
+return true; // 🔥 nur wenn alles wirklich gesendet wurde
 }
 
 // ----------------------
@@ -823,6 +824,7 @@ let entry = {
           }
 
           updateSelectedTotal();
+           resetPayButton(); // 🔥 DAS IST DER FEHLENDE PART
         };
 
         paymentDiv.appendChild(btn);
@@ -846,7 +848,7 @@ async function confirmPayment() {
 
   if (paymentList.length === 0) {
     alert("Keine Zahlung ausgewählt!");
-    return;
+    return false;
   }
 
   const tableId = paymentList[0].tableId;
@@ -1004,17 +1006,12 @@ if (data.items.length === 0) {
   paymentList = [];
   updateSelectedTotal();
 
-
-
-paymentList = [];
-updateSelectedTotal();
-
 // 🔥 NUR rechte Seite neu laden
 await openTableDetails(tableId);
 
 // 🔥 nur diesen Tisch aktualisieren
 await updateSingleTable(tableId);
-
+return true;
 loadSales();
 }
 
@@ -1185,6 +1182,75 @@ function validateTableRange() {
     rangeEnd.style.border = "";
   }
 }
+async function handleSend(btn) {
+  if (btn.disabled) return;
+
+  const originalText = btn.innerHTML;
+
+  btn.disabled = true;
+  btn.innerHTML = "⏳ Sende...";
+
+  try {
+    const success = await sendOrder(); // 🔥 HIER
+
+    if (!success) {
+      // ❌ nichts gesendet → zurücksetzen
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+      return;
+    }
+
+    // ✅ nur bei Erfolg!
+    btn.innerHTML = "✅ Gesendet";
+
+  } catch (e) {
+    console.error(e);
+    btn.innerHTML = "❌ Fehler";
+    btn.disabled = false;
+
+    setTimeout(() => {
+      btn.innerHTML = originalText;
+    }, 2000);
+  }
+}
+
+async function handlePay(btn) {
+  if (btn.disabled) return;
+
+  const originalText = btn.innerHTML;
+
+  btn.disabled = true;
+  btn.innerHTML = "⏳ Bezahle...";
+
+  try {
+    await confirmPayment();
+    btn.innerHTML = "✅ Fertig";
+  } catch (e) {
+    console.error(e);
+    btn.innerHTML = "❌ Fehler";
+    btn.disabled = false;
+
+    setTimeout(() => {
+      btn.innerHTML = originalText;
+    }, 2000);
+  }
+}
+function resetSendButton() {
+  const btn = document.getElementById("sendBtn");
+  if (!btn) return;
+
+  btn.disabled = false;
+  btn.innerHTML = "✅ Senden";
+  btn.style.opacity = "1";
+}
+function resetPayButton() {
+  const btn = document.getElementById("payBtn");
+  if (!btn) return;
+
+  btn.disabled = false;
+  btn.innerHTML = "✅ Bezahlen";
+  btn.style.opacity = "1";
+}
 // Funktionen global machen (für Buttons)
 window.confirmPayment = confirmPayment;
 window.renderTables = renderTables;
@@ -1192,3 +1258,5 @@ window.openTableDetails = openTableDetails;
 window.loadFullPayment = loadFullPayment;
 window.sendOrder = sendOrder;
 window.changeQty = changeQty;
+window.handleSend = handleSend;
+window.handlePay = handlePay;
