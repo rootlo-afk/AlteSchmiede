@@ -221,7 +221,7 @@ input[type=number] {
 <div id="cart"></div>
 <h3 id="total">Neue Bestellung: 0€</h3>
 
-<button onclick="sendOrder()">✅ Senden</button>
+<button id="sendBtn" onclick="handleSend(this)">✅ Senden</button>
 
 <hr>
 
@@ -281,7 +281,7 @@ input[type=number] {
 
   <h3 id="payTotal">0€</h3>
 
-  <button onclick="confirmPayment()">✅ Bezahlen</button>
+  <button id="payBtn" onclick="handlePay(this)">✅ Bezahlen</button>
 <div class="footer-credit">
   built & designed by rootlo
 </div>
